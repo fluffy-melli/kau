@@ -49,8 +49,8 @@ pub const Judgment4K = struct {
     maxMs: i64,
 
     pub fn init(allocator: std.mem.Allocator, font: rl.Font) Judgment4K {
-        const minMs: i64 = -250;
-        const maxMs: i64 = 250;
+        const minMs: i64 = -150;
+        const maxMs: i64 = 150;
 
         const noteSizeX: i32 = 64;
         const noteSizeY: i32 = 16;
@@ -148,7 +148,7 @@ pub const Judgment4K = struct {
         const accEndX: i32 = self.note4X + self.noteSizeX - 20;
         const centerX: i32 = @divTrunc(accStartX + accEndX, 2);
 
-        const accCenterY: i32 = @divTrunc(self.resolution.height + self.JLineY + @divTrunc(self.noteSizeY, 2), 2);
+        const accCenterY: i32 = self.JLineY + 50;
 
         rl.drawLineEx(
             rl.Vector2{
@@ -456,9 +456,13 @@ pub const Judgment4K = struct {
             }
 
             const elapsed = posMs - spawnTime;
-            const y: i32 = @as(i32, @intCast(@divTrunc(elapsed * @as(i64, @intCast(self.JLineY)), n.reachTimeMs)));
+            const targetY = self.JLineY + @divTrunc(self.noteSizeY, 2);
 
-            if (y > self.resolution.height) {
+            const y: i32 = @as(i32, @intCast(@divTrunc(elapsed * @as(i64, @intCast(targetY)), n.reachTimeMs)));
+
+            const noteDrawY: i32 = y - @divTrunc(self.noteSizeY, 2);
+
+            if (noteDrawY > self.resolution.height) {
                 try self.noteEvent(idx, 0, true);
                 continue;
             }
@@ -466,28 +470,28 @@ pub const Judgment4K = struct {
             switch (n.keyType) {
                 .key1 => rl.drawRectangle(
                     self.note1X,
-                    y,
+                    noteDrawY,
                     self.noteSizeX,
                     self.noteSizeY,
                     self.line1Color,
                 ),
                 .key2 => rl.drawRectangle(
                     self.note2X,
-                    y,
+                    noteDrawY,
                     self.noteSizeX,
                     self.noteSizeY,
                     self.line2Color,
                 ),
                 .key3 => rl.drawRectangle(
                     self.note3X,
-                    y,
+                    noteDrawY,
                     self.noteSizeX,
                     self.noteSizeY,
                     self.line3Color,
                 ),
                 .key4 => rl.drawRectangle(
                     self.note4X,
-                    y,
+                    noteDrawY,
                     self.noteSizeX,
                     self.noteSizeY,
                     self.line4Color,
