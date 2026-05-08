@@ -11,7 +11,7 @@ pub fn main(init: std.process.Init) !void {
     var window = try arc.Window.init(arc.forDev);
     defer window.deinit();
 
-    const font = try rl.loadFont("resources/JetBrainsMono-Regular.ttf");
+    const font = try rl.loadFont("resources/NotoSansKR-Bold.ttf");
     defer rl.unloadFont(font);
 
     var k4 = overlay.Judgment4K.init(allocator, font);
@@ -52,7 +52,8 @@ pub fn main(init: std.process.Init) !void {
         rl.clearBackground(.black);
 
         try overlay.drawFPS(allocator, font);
-        try k4.draw();
+        try k4.drawNote();
+        try k4.drawAccuracyGraph();
         try k4.render();
 
         window.endVirtual();

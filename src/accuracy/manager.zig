@@ -73,7 +73,9 @@ pub const Manager = struct {
             }
         }
 
-        if (count == 0) return 0.0;
+        if (count == 0) {
+            return 0.0;
+        }
 
         return total / @as(f64, @floatFromInt(count));
     }
