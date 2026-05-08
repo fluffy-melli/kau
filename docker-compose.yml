@@ -1,0 +1,20 @@
+services:
+  zig-builder:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: zig-builder
+
+  window:
+    image: zig-builder
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - ./zig-out/window:/app/zig-out
+      - zig-cache:/app/.zig-cache
+    command: zig build -Dtarget=x86_64-windows-gnu
+    depends_on:
+      - zig-builder
+
+volumes:
+  zig-cache:
