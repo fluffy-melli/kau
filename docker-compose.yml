@@ -5,6 +5,17 @@ services:
       dockerfile: Dockerfile
     image: zig-builder
 
+  linux:
+    image: zig-builder
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - ./zig-out/linux:/app/zig-out
+      - zig-cache:/app/.zig-cache
+    command: zig build
+    depends_on:
+      - zig-builder
+
   window:
     image: zig-builder
     working_dir: /app
