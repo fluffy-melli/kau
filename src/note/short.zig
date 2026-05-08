@@ -5,7 +5,7 @@ pub const Short = struct {
     reachTimeMs: i64,
     arrivalTimeMs: i64,
 
-    pub fn init(
+    pub inline fn init(
         keyType: types.KeyType,
         reachTimeMs: i64,
         arrivalTimeMs: i64,

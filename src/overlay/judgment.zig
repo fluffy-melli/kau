@@ -48,7 +48,7 @@ pub const Judgment4K = struct {
     minMs: i64,
     maxMs: i64,
 
-    pub fn init(allocator: std.mem.Allocator, font: rl.Font) Judgment4K {
+    pub inline fn init(allocator: std.mem.Allocator, font: rl.Font) Judgment4K {
         const minMs: i64 = -150;
         const maxMs: i64 = 150;
 
@@ -102,12 +102,12 @@ pub const Judgment4K = struct {
         };
     }
 
-    pub fn deinit(self: *Judgment4K) void {
+    pub inline fn deinit(self: *Judgment4K) void {
         self.noteManager.deinit();
         self.accuracyManager.deinit();
     }
 
-    pub fn draw(self: *Judgment4K) !void {
+    pub inline fn draw(self: *Judgment4K) !void {
         rl.drawLineEx(
             rl.Vector2{
                 .x = @floatFromInt(self.note1X),
@@ -501,7 +501,7 @@ pub const Judgment4K = struct {
         }
     }
 
-    pub fn render(self: *Judgment4K) !void {
+    pub inline fn render(self: *Judgment4K) !void {
         const nowTime = rl.getTime();
         const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
 
@@ -529,7 +529,7 @@ pub const Judgment4K = struct {
         }
     }
 
-    fn noteEvent(self: *Judgment4K, idx: usize, ms: i64, miss: bool) !void {
+    inline fn noteEvent(self: *Judgment4K, idx: usize, ms: i64, miss: bool) !void {
         self.noteManager.deleteShortNote(idx);
         try self.accuracyManager.addAccuracy(accuracy.Accuracy.init(ms, miss));
     }

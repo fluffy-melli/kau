@@ -4,7 +4,7 @@ pub const Accuracy = struct {
     ms: i64,
     miss: bool,
 
-    pub fn init(ms: i64, miss: bool) Accuracy {
+    pub inline fn init(ms: i64, miss: bool) Accuracy {
         return Accuracy{
             .ms = ms,
             .miss = miss,
@@ -20,7 +20,7 @@ pub const Manager = struct {
     minMs: i64,
     maxMs: i64,
 
-    pub fn init(allocator: std.mem.Allocator, minMs: i64, maxMs: i64) Manager {
+    pub inline fn init(allocator: std.mem.Allocator, minMs: i64, maxMs: i64) Manager {
         return Manager{
             .allocator = allocator,
             .list = .empty,
@@ -29,15 +29,15 @@ pub const Manager = struct {
         };
     }
 
-    pub fn deinit(self: *Manager) void {
+    pub inline fn deinit(self: *Manager) void {
         self.list.deinit(self.allocator);
     }
 
-    pub fn addAccuracy(self: *Manager, accuracy: Accuracy) !void {
+    pub inline fn addAccuracy(self: *Manager, accuracy: Accuracy) !void {
         try self.list.append(self.allocator, accuracy);
     }
 
-    pub fn getAccuracy(self: Manager) f64 {
+    pub inline fn getAccuracy(self: Manager) f64 {
         if (self.list.items.len == 0) {
             return 1.0;
         }

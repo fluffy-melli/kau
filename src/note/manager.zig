@@ -9,7 +9,7 @@ pub const Manager = struct {
 
     currentTime: i64,
 
-    pub fn init(allocator: std.mem.Allocator) Manager {
+    pub inline fn init(allocator: std.mem.Allocator) Manager {
         return Manager{
             .allocator = allocator,
             .shorts = .empty,
@@ -17,23 +17,23 @@ pub const Manager = struct {
         };
     }
 
-    pub fn deinit(self: *Manager) void {
+    pub inline fn deinit(self: *Manager) void {
         self.shorts.deinit(self.allocator);
     }
 
-    pub fn resetTime(self: *Manager) void {
+    pub inline fn resetTime(self: *Manager) void {
         self.currentTime = @as(i64, @intFromFloat(rl.getTime()));
     }
 
-    pub fn appendShortNote(self: *Manager, note: short.Short) !void {
+    pub inline fn appendShortNote(self: *Manager, note: short.Short) !void {
         try self.shorts.append(self.allocator, note);
     }
 
-    pub fn deleteShortNote(self: *Manager, idx: usize) void {
+    pub inline fn deleteShortNote(self: *Manager, idx: usize) void {
         _ = self.shorts.swapRemove(idx);
     }
 
-    pub fn resetShortNote(self: *Manager) void {
+    pub inline fn resetShortNote(self: *Manager) void {
         self.shorts.clearRetainingCapacity();
     }
 };
