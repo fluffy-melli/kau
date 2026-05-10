@@ -1,8 +1,8 @@
-const types = @import("types.zig");
+const types = @import("types");
 
 pub const Concurrent = struct {
-    keyType1: types.KeyType,
-    keyType2: types.KeyType,
+    keyType1: types.KeyType4K,
+    keyType2: types.KeyType4K,
 
     hitTimeMs: i64,
     fallDurationMs: i64,

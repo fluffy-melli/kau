@@ -1,13 +1,13 @@
-const types = @import("types.zig");
+const types = @import("types");
 
 pub const Short = struct {
-    keyType: types.KeyType,
+    keyType: types.KeyType4K,
 
     hitTimeMs: i64,
     fallDurationMs: i64,
 
     pub inline fn init(
-        keyType: types.KeyType,
+        keyType: types.KeyType4K,
         hitTimeMs: i64,
         fallDurationMs: i64,
     ) Short {

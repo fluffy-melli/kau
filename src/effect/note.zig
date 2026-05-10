@@ -1,6 +1,6 @@
 const rl = @import("raylib");
 const note = @import("note");
-const std = @import("std");
+const types = @import("types");
 
 pub const Note4K = struct {
     note1: f64,
@@ -37,7 +37,7 @@ pub const Note4K = struct {
         };
     }
 
-    pub inline fn on(self: *Note4K, i: note.KeyType) void {
+    pub inline fn on(self: *Note4K, i: types.KeyType4K) void {
         switch (i) {
             .key1 => self.note1 = rl.getTime(),
             .key2 => self.note2 = rl.getTime(),

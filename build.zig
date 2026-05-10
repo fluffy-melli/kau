@@ -21,14 +21,11 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const arc = b.addModule("arc", .{
-        .root_source_file = b.path("src/arc/_.zig"),
+    const types = b.addModule("types", .{
+        .root_source_file = b.path("src/types/_.zig"),
         .target = target,
         .optimize = optimize,
     });
-
-    arc.addImport("raylib", raylib);
-    arc.addImport("raygui", raygui);
 
     const note = b.addModule("note", .{
         .root_source_file = b.path("src/note/_.zig"),
@@ -38,6 +35,7 @@ pub fn build(b: *std.Build) void {
 
     note.addImport("raylib", raylib);
     note.addImport("raygui", raygui);
+    note.addImport("types", types);
 
     const effect = b.addModule("effect", .{
         .root_source_file = b.path("src/effect/_.zig"),
@@ -47,7 +45,7 @@ pub fn build(b: *std.Build) void {
 
     effect.addImport("raylib", raylib);
     effect.addImport("raygui", raygui);
-    effect.addImport("arc", arc);
+    effect.addImport("types", types);
     effect.addImport("note", note);
 
     const overlay = b.addModule("overlay", .{
@@ -58,10 +56,10 @@ pub fn build(b: *std.Build) void {
 
     overlay.addImport("raylib", raylib);
     overlay.addImport("raygui", raygui);
-    overlay.addImport("arc", arc);
     overlay.addImport("note", note);
-    overlay.addImport("accuracy", accuracy);
+    overlay.addImport("types", types);
     overlay.addImport("effect", effect);
+    overlay.addImport("accuracy", accuracy);
 
     const exe = b.addExecutable(.{
         .name = "kau",
@@ -76,8 +74,8 @@ pub fn build(b: *std.Build) void {
     exe.root_module.linkLibrary(raylib_artifact);
     exe.root_module.addImport("raylib", raylib);
     exe.root_module.addImport("raygui", raygui);
-    exe.root_module.addImport("arc", arc);
     exe.root_module.addImport("note", note);
+    exe.root_module.addImport("types", types);
     exe.root_module.addImport("overlay", overlay);
     exe.root_module.addImport("accuracy", accuracy);
 

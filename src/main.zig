@@ -1,20 +1,25 @@
 const rl = @import("raylib");
 const std = @import("std");
-const arc = @import("arc");
 const note = @import("note");
+const types = @import("types");
 const overlay = @import("overlay");
 const accuracy = @import("accuracy");
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
 
-    var window = try arc.Window.init(arc.forDev);
-    defer window.deinit();
+    const r = types.Resolution{
+        .width = 1280,
+        .height = 720,
+    };
+
+    rl.initWindow(r.width, r.height, "kau");
+    defer rl.closeWindow();
 
     const font = try rl.loadFont("resources/NotoSansKR-Bold.ttf");
     defer rl.unloadFont(font);
 
-    var k4 = overlay.Judgment4K.init(allocator, font);
+    var k4 = overlay.Judgment4K.init(allocator, r, font);
     defer k4.deinit();
 
     for (1..64) |offset| {
@@ -65,9 +70,6 @@ pub fn main(init: std.process.Init) !void {
 
         rl.clearBackground(.black);
 
-        window.beginVirtual();
-        rl.clearBackground(.black);
-
         k4.drawLine();
         k4.noteEffect4K.draw();
         k4.keyPressEffect4K.draw();
@@ -77,7 +79,5 @@ pub fn main(init: std.process.Init) !void {
         try k4.drawAccuracyGraph();
         try k4.renderShortNote();
         try k4.renderConcurrentNote();
-
-        window.endVirtual();
     }
 }

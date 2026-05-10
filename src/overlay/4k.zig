@@ -1,14 +1,14 @@
 const rl = @import("raylib");
 const std = @import("std");
-const arc = @import("arc");
 const note = @import("note");
+const types = @import("types");
 const effect = @import("effect");
 const accuracy = @import("accuracy");
 
 pub const Judgment4K = struct {
     allocator: std.mem.Allocator,
 
-    resolution: arc.Resolution,
+    resolution: types.Resolution,
 
     noteEffect4K: effect.Note4K,
     keyPressEffect4K: effect.keyPressEffect4K,
@@ -31,7 +31,6 @@ pub const Judgment4K = struct {
     line4Color: rl.Color,
     lineJColor: rl.Color,
     concurrentLineColor: rl.Color,
-    keyPressColor: rl.Color,
 
     accuracyColor: rl.Color,
     accuracyOldColor: rl.Color,
@@ -53,7 +52,7 @@ pub const Judgment4K = struct {
     minMs: i64,
     maxMs: i64,
 
-    pub inline fn init(allocator: std.mem.Allocator, font: rl.Font) Judgment4K {
+    pub inline fn init(allocator: std.mem.Allocator, r: types.Resolution, font: rl.Font) Judgment4K {
         const minMs: i64 = -150;
         const maxMs: i64 = 150;
 
@@ -61,8 +60,6 @@ pub const Judgment4K = struct {
         const noteSizeY: i32 = 24;
 
         const effectLengthMs: i64 = 250;
-
-        const r = arc.forDev;
 
         const centerX: i32 = @divTrunc(r.width, 2);
 
@@ -109,7 +106,6 @@ pub const Judgment4K = struct {
 
             .lineJColor = .{ .r = 248, .g = 229, .b = 73, .a = 120 },
             .concurrentLineColor = .{ .r = 255, .g = 165, .b = 0, .a = 255 },
-            .keyPressColor = .{ .r = 255, .g = 255, .b = 255, .a = 100 },
 
             .accuracyColor = .{ .r = 255, .g = 255, .b = 255, .a = 255 },
             .accuracyOldColor = .{ .r = 255, .g = 255, .b = 255, .a = 75 },
@@ -138,7 +134,7 @@ pub const Judgment4K = struct {
         self.accuracyManager.deinit();
     }
 
-    inline fn laneX(self: Judgment4K, key: note.KeyType) i32 {
+    inline fn laneX(self: Judgment4K, key: types.KeyType4K) i32 {
         return switch (key) {
             .key1 => self.note1X,
             .key2 => self.note2X,
@@ -147,7 +143,7 @@ pub const Judgment4K = struct {
         };
     }
 
-    inline fn laneColor(self: Judgment4K, key: note.KeyType) rl.Color {
+    inline fn laneColor(self: Judgment4K, key: types.KeyType4K) rl.Color {
         return switch (key) {
             .key1 => self.line1Color,
             .key2 => self.line2Color,
@@ -156,7 +152,7 @@ pub const Judgment4K = struct {
         };
     }
 
-    inline fn keyPressed(self: Judgment4K, key: note.KeyType) bool {
+    inline fn keyPressed(self: Judgment4K, key: types.KeyType4K) bool {
         return switch (key) {
             .key1 => rl.isKeyPressed(self.key1),
             .key2 => rl.isKeyPressed(self.key2),
@@ -165,7 +161,7 @@ pub const Judgment4K = struct {
         };
     }
 
-    inline fn keyDown(self: Judgment4K, key: note.KeyType) bool {
+    inline fn keyDown(self: Judgment4K, key: types.KeyType4K) bool {
         return switch (key) {
             .key1 => rl.isKeyDown(self.key1),
             .key2 => rl.isKeyDown(self.key2),
