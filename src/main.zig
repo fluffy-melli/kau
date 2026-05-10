@@ -17,28 +17,45 @@ pub fn main(init: std.process.Init) !void {
     var k4 = overlay.Judgment4K.init(allocator, font);
     defer k4.deinit();
 
-    const pattern = [_]i32{ 1, 2, 3, 4, 3, 2 };
-    const pattern_len = pattern.len;
-
-    for (0..128) |i| {
-        const idx = i % pattern_len;
-        const key = pattern[idx];
-        const ii64: i64 = @intCast(i);
-
-        const arrival = 1200 + ii64 * 250;
-
-        const keyType = switch (key) {
-            1 => note.KeyType.key1,
-            2 => note.KeyType.key2,
-            3 => note.KeyType.key3,
-            4 => note.KeyType.key4,
-            else => unreachable,
-        };
+    for (1..64) |offset| {
+        const offsetI64: i64 = @intCast(offset);
 
         try k4.noteManager.appendShortNote(.{
-            .keyType = keyType,
-            .reachTimeMs = 750,
-            .arrivalTimeMs = arrival,
+            .keyType = .key1,
+            .hitTimeMs = (offsetI64 * 1250),
+            .fallDurationMs = 750,
+        });
+
+        try k4.noteManager.appendShortNote(.{
+            .keyType = .key2,
+            .hitTimeMs = (offsetI64 * 1250) + 125,
+            .fallDurationMs = 750,
+        });
+
+        try k4.noteManager.appendConcurrentNote(.{
+            .keyType1 = .key3,
+            .keyType2 = .key4,
+            .hitTimeMs = (offsetI64 * 1250) + 250,
+            .fallDurationMs = 750,
+        });
+
+        try k4.noteManager.appendShortNote(.{
+            .keyType = .key4,
+            .hitTimeMs = (offsetI64 * 1250) + 600,
+            .fallDurationMs = 750,
+        });
+
+        try k4.noteManager.appendShortNote(.{
+            .keyType = .key3,
+            .hitTimeMs = (offsetI64 * 1250) + 725,
+            .fallDurationMs = 750,
+        });
+
+        try k4.noteManager.appendConcurrentNote(.{
+            .keyType1 = .key1,
+            .keyType2 = .key2,
+            .hitTimeMs = (offsetI64 * 1250) + 850,
+            .fallDurationMs = 750,
         });
     }
 
@@ -52,9 +69,12 @@ pub fn main(init: std.process.Init) !void {
         rl.clearBackground(.black);
 
         try overlay.drawFPS(allocator, font);
-        try k4.drawNote();
+        try k4.drawShortNote();
+        try k4.drawConcurrentNote();
         try k4.drawAccuracyGraph();
-        try k4.render();
+        try k4.renderShortNote();
+        try k4.renderConcurrentNote();
+        k4.drawLine();
 
         window.endVirtual();
     }

@@ -26,6 +26,7 @@ pub const Judgment4K = struct {
     line3Color: rl.Color,
     line4Color: rl.Color,
     lineJColor: rl.Color,
+    concurrentLineColor: rl.Color,
     keyPressColor: rl.Color,
 
     accuracyColor: rl.Color,
@@ -84,10 +85,11 @@ pub const Judgment4K = struct {
             .line4Color = .{ .r = 255, .g = 255, .b = 255, .a = 255 },
 
             .lineJColor = .{ .r = 248, .g = 229, .b = 73, .a = 100 },
+            .concurrentLineColor = .{ .r = 255, .g = 165, .b = 0, .a = 255 },
             .keyPressColor = .{ .r = 255, .g = 255, .b = 255, .a = 100 },
 
             .accuracyColor = .{ .r = 255, .g = 255, .b = 255, .a = 255 },
-            .accuracyOldColor = .{ .r = 255, .g = 255, .b = 255, .a = 100 },
+            .accuracyOldColor = .{ .r = 255, .g = 255, .b = 255, .a = 75 },
             .accuracyLineColor = .{ .r = 191, .g = 191, .b = 255, .a = 255 },
             .accuracyCenterColor = .{ .r = 255, .g = 0, .b = 0, .a = 255 },
 
@@ -208,7 +210,7 @@ pub const Judgment4K = struct {
         );
     }
 
-    pub inline fn drawNote(self: *Judgment4K) !void {
+    pub inline fn drawLine(self: *Judgment4K) void {
         rl.drawLineEx(
             rl.Vector2{
                 .x = @floatFromInt(self.note1X),
@@ -259,7 +261,9 @@ pub const Judgment4K = struct {
                 );
             }
         }
+    }
 
+    pub inline fn drawShortNote(self: *Judgment4K) !void {
         const nowTime = rl.getTime();
 
         const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
@@ -269,7 +273,7 @@ pub const Judgment4K = struct {
         while (idx < self.noteManager.shorts.items.len) {
             const n = self.noteManager.shorts.items[idx];
 
-            const spawnTime = n.arrivalTimeMs - n.reachTimeMs;
+            const spawnTime = n.hitTimeMs - n.fallDurationMs;
 
             if (posMs < spawnTime) {
                 idx += 1;
@@ -280,12 +284,12 @@ pub const Judgment4K = struct {
 
             const targetY = self.JLineY + @divTrunc(self.noteSizeY, 2);
 
-            const y: i32 = @as(i32, @intCast(@divTrunc(elapsed * @as(i64, @intCast(targetY)), n.reachTimeMs)));
+            const y: i32 = @as(i32, @intCast(@divTrunc(elapsed * @as(i64, @intCast(targetY)), n.fallDurationMs)));
 
             const noteDrawY: i32 = y - @divTrunc(self.noteSizeY, 2);
 
             if (noteDrawY > self.resolution.height) {
-                try self.noteEvent(idx, 0, true);
+                try self.shortNoteEvent(idx, 0, true);
                 continue;
             }
 
@@ -295,6 +299,56 @@ pub const Judgment4K = struct {
                 self.noteSizeX,
                 self.noteSizeY,
                 self.laneColor(n.keyType),
+            );
+
+            idx += 1;
+        }
+    }
+
+    pub inline fn drawConcurrentNote(self: *Judgment4K) !void {
+        const nowTime = rl.getTime();
+
+        const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
+
+        var idx: usize = 0;
+
+        while (idx < self.noteManager.concurrents.items.len) {
+            const n = self.noteManager.concurrents.items[idx];
+
+            const spawnTime = n.hitTimeMs - n.fallDurationMs;
+
+            if (posMs < spawnTime) {
+                idx += 1;
+                continue;
+            }
+
+            const elapsed = posMs - spawnTime;
+
+            const targetY = self.JLineY + @divTrunc(self.noteSizeY, 2);
+
+            const y: i32 = @as(i32, @intCast(@divTrunc(elapsed * @as(i64, @intCast(targetY)), n.fallDurationMs)));
+
+            const noteDrawY: i32 = y - @divTrunc(self.noteSizeY, 2);
+
+            if (noteDrawY > self.resolution.height) {
+                try self.concurrentNoteEvent(idx, 0, true);
+                continue;
+            }
+
+            rl.drawRectangle(
+                self.laneX(n.keyType1),
+                noteDrawY,
+                self.noteSizeX,
+                self.noteSizeY,
+                self.concurrentLineColor,
+            );
+
+            rl.drawRectangle(
+                self.laneX(n.keyType2),
+                noteDrawY,
+                self.noteSizeX,
+                self.noteSizeY,
+                self.concurrentLineColor,
             );
 
             idx += 1;
@@ -364,12 +418,8 @@ pub const Judgment4K = struct {
 
         var i: usize = self.accuracyManager.list.items.len;
 
-        while (i > 0) {
+        while (i > 0) : (count += 1) {
             i -= 1;
-
-            if (count >= 35) {
-                break;
-            }
 
             const acc = self.accuracyManager.list.items[i];
 
@@ -379,37 +429,36 @@ pub const Judgment4K = struct {
                     firstMiss = true;
                 }
 
-                continue;
-            }
-
-            const drawX = calcDrawX(
-                @as(f64, @floatFromInt(acc.ms)),
-                maxRange,
-                centerX,
-                halfWidth,
-            );
-
-            if (first) {
-                first = false;
-                firstTime = acc.ms;
-
-                drawMarker(
-                    drawX,
-                    accCenterY,
-                    2,
-                    self.accuracyColor,
-                );
+                sum += self.minMs;
             } else {
-                drawMarker(
-                    drawX,
-                    accCenterY,
-                    2,
-                    self.accuracyOldColor,
+                const drawX = calcDrawX(
+                    @as(f64, @floatFromInt(acc.ms)),
+                    maxRange,
+                    centerX,
+                    halfWidth,
                 );
-            }
 
-            sum += acc.ms;
-            count += 1;
+                if (first) {
+                    first = false;
+                    firstTime = acc.ms;
+
+                    drawMarker(
+                        drawX,
+                        accCenterY,
+                        2,
+                        self.accuracyColor,
+                    );
+                } else {
+                    drawMarker(
+                        drawX,
+                        accCenterY,
+                        2,
+                        self.accuracyOldColor,
+                    );
+                }
+
+                sum += acc.ms;
+            }
         }
 
         if (count > 0) {
@@ -502,7 +551,7 @@ pub const Judgment4K = struct {
         );
     }
 
-    pub inline fn render(self: *Judgment4K) !void {
+    pub inline fn renderShortNote(self: *Judgment4K) !void {
         const nowTime = rl.getTime();
 
         const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
@@ -512,7 +561,7 @@ pub const Judgment4K = struct {
         while (idx < self.noteManager.shorts.items.len) {
             const n = self.noteManager.shorts.items[idx];
 
-            const errors = n.arrivalTimeMs - posMs;
+            const errors = n.hitTimeMs - posMs;
 
             var hit = false;
 
@@ -521,7 +570,7 @@ pub const Judgment4K = struct {
             }
 
             if (hit) {
-                try self.noteEvent(idx, errors, false);
+                try self.shortNoteEvent(idx, errors, false);
                 break;
             }
 
@@ -529,13 +578,56 @@ pub const Judgment4K = struct {
         }
     }
 
-    inline fn noteEvent(
+    pub inline fn renderConcurrentNote(self: *Judgment4K) !void {
+        const nowTime = rl.getTime();
+
+        const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
+
+        var idx: usize = 0;
+
+        while (idx < self.noteManager.concurrents.items.len) {
+            const n = self.noteManager.concurrents.items[idx];
+
+            const errors = n.hitTimeMs - posMs;
+
+            var hit = false;
+
+            if (errors <= self.maxMs and errors >= self.minMs) {
+                const hit1 = self.keyPressed(n.keyType1) and self.keyDown(n.keyType2);
+                const hit2 = self.keyDown(n.keyType1) and self.keyPressed(n.keyType2);
+                const hit3 = self.keyPressed(n.keyType1) and self.keyPressed(n.keyType2);
+                hit = hit1 or hit2 or hit3;
+            }
+
+            if (hit) {
+                try self.concurrentNoteEvent(idx, errors, false);
+                break;
+            }
+
+            idx += 1;
+        }
+    }
+
+    inline fn shortNoteEvent(
         self: *Judgment4K,
         idx: usize,
         ms: i64,
         miss: bool,
     ) !void {
         self.noteManager.deleteShortNote(idx);
+
+        try self.accuracyManager.addAccuracy(
+            accuracy.Accuracy.init(ms, miss),
+        );
+    }
+
+    inline fn concurrentNoteEvent(
+        self: *Judgment4K,
+        idx: usize,
+        ms: i64,
+        miss: bool,
+    ) !void {
+        self.noteManager.deleteConcurrentNote(idx);
 
         try self.accuracyManager.addAccuracy(
             accuracy.Accuracy.init(ms, miss),
