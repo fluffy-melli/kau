@@ -2,12 +2,16 @@ const rl = @import("raylib");
 const std = @import("std");
 const arc = @import("arc");
 const note = @import("note");
+const effect = @import("effect");
 const accuracy = @import("accuracy");
 
 pub const Judgment4K = struct {
     allocator: std.mem.Allocator,
 
     resolution: arc.Resolution,
+
+    noteEffect4K: effect.Note4K,
+    keyPressEffect4K: effect.keyPressEffect4K,
 
     noteManager: note.Manager,
     accuracyManager: accuracy.Manager,
@@ -56,26 +60,45 @@ pub const Judgment4K = struct {
         const noteSizeX: i32 = 74;
         const noteSizeY: i32 = 24;
 
+        const effectLengthMs: i64 = 250;
+
+        const r = arc.forDev;
+
+        const centerX: i32 = @divTrunc(r.width, 2);
+
+        const note1X: i32 = centerX - @divTrunc(noteSizeX, 2) - noteSizeX;
+        const note2X: i32 = centerX - @divTrunc(noteSizeX, 2);
+        const note3X: i32 = centerX + @divTrunc(noteSizeX, 2);
+        const note4X: i32 = centerX + @divTrunc(noteSizeX, 2) + noteSizeX;
+
+        const JLineY: i32 = r.height - 100;
+
+        const key1 = rl.KeyboardKey.a;
+        const key2 = rl.KeyboardKey.s;
+        const key3 = rl.KeyboardKey.k;
+        const key4 = rl.KeyboardKey.l;
+
+        const noteEffect4K = effect.Note4K.init(effectLengthMs, note1X, note2X, note3X, note4X, noteSizeX, noteSizeY, JLineY);
+        const keyPressEffect4K = effect.keyPressEffect4K.init(r, note1X, note2X, note3X, note4X, noteSizeX, noteSizeY, key1, key2, key3, key4);
+
         const noteManager = note.Manager.init(allocator);
         const accuracyManager = accuracy.Manager.init(allocator, minMs, maxMs);
 
-        const centerX: i32 = @divTrunc(arc.forDev.width, 2);
-
-        const JLineY: i32 = arc.forDev.height - 100;
-
         return Judgment4K{
             .allocator = allocator,
-            .resolution = arc.forDev,
+            .resolution = r,
+            .noteEffect4K = noteEffect4K,
+            .keyPressEffect4K = keyPressEffect4K,
             .noteManager = noteManager,
             .accuracyManager = accuracyManager,
 
             .noteSizeX = noteSizeX,
             .noteSizeY = noteSizeY,
 
-            .note1X = centerX - @divTrunc(noteSizeX, 2) - noteSizeX,
-            .note2X = centerX - @divTrunc(noteSizeX, 2),
-            .note3X = centerX + @divTrunc(noteSizeX, 2),
-            .note4X = centerX + @divTrunc(noteSizeX, 2) + noteSizeX,
+            .note1X = note1X,
+            .note2X = note2X,
+            .note3X = note3X,
+            .note4X = note4X,
 
             .JLineY = JLineY,
 
@@ -84,7 +107,7 @@ pub const Judgment4K = struct {
             .line3Color = .{ .r = 102, .g = 120, .b = 255, .a = 255 },
             .line4Color = .{ .r = 255, .g = 255, .b = 255, .a = 255 },
 
-            .lineJColor = .{ .r = 248, .g = 229, .b = 73, .a = 100 },
+            .lineJColor = .{ .r = 248, .g = 229, .b = 73, .a = 120 },
             .concurrentLineColor = .{ .r = 255, .g = 165, .b = 0, .a = 255 },
             .keyPressColor = .{ .r = 255, .g = 255, .b = 255, .a = 100 },
 
@@ -98,10 +121,10 @@ pub const Judgment4K = struct {
             .lateColor = .{ .r = 255, .g = 0, .b = 0, .a = 255 },
             .missColor = .{ .r = 255, .g = 255, .b = 255, .a = 100 },
 
-            .key1 = .a,
-            .key2 = .s,
-            .key3 = .k,
-            .key4 = .l,
+            .key1 = key1,
+            .key2 = key2,
+            .key3 = key3,
+            .key4 = key4,
 
             .font = font,
 
@@ -244,23 +267,6 @@ pub const Judgment4K = struct {
             self.noteSizeY,
             self.lineJColor,
         );
-
-        inline for ([_]note.KeyType{
-            .key1,
-            .key2,
-            .key3,
-            .key4,
-        }) |key| {
-            if (self.keyDown(key)) {
-                rl.drawRectangle(
-                    self.laneX(key),
-                    0,
-                    self.noteSizeX,
-                    self.resolution.height,
-                    self.keyPressColor,
-                );
-            }
-        }
     }
 
     pub inline fn drawShortNote(self: *Judgment4K) !void {
@@ -570,6 +576,7 @@ pub const Judgment4K = struct {
             }
 
             if (hit) {
+                self.noteEffect4K.on(n.keyType);
                 try self.shortNoteEvent(idx, errors, false);
                 break;
             }
@@ -600,6 +607,8 @@ pub const Judgment4K = struct {
             }
 
             if (hit) {
+                self.noteEffect4K.on(n.keyType1);
+                self.noteEffect4K.on(n.keyType2);
                 try self.concurrentNoteEvent(idx, errors, false);
                 break;
             }

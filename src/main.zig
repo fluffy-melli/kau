@@ -68,13 +68,15 @@ pub fn main(init: std.process.Init) !void {
         window.beginVirtual();
         rl.clearBackground(.black);
 
+        k4.drawLine();
+        k4.noteEffect4K.draw();
+        k4.keyPressEffect4K.draw();
         try overlay.drawFPS(allocator, font);
         try k4.drawShortNote();
         try k4.drawConcurrentNote();
         try k4.drawAccuracyGraph();
         try k4.renderShortNote();
         try k4.renderConcurrentNote();
-        k4.drawLine();
 
         window.endVirtual();
     }

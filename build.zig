@@ -39,6 +39,17 @@ pub fn build(b: *std.Build) void {
     note.addImport("raylib", raylib);
     note.addImport("raygui", raygui);
 
+    const effect = b.addModule("effect", .{
+        .root_source_file = b.path("src/effect/_.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    effect.addImport("raylib", raylib);
+    effect.addImport("raygui", raygui);
+    effect.addImport("arc", arc);
+    effect.addImport("note", note);
+
     const overlay = b.addModule("overlay", .{
         .root_source_file = b.path("src/overlay/_.zig"),
         .target = target,
@@ -50,6 +61,7 @@ pub fn build(b: *std.Build) void {
     overlay.addImport("arc", arc);
     overlay.addImport("note", note);
     overlay.addImport("accuracy", accuracy);
+    overlay.addImport("effect", effect);
 
     const exe = b.addExecutable(.{
         .name = "kau",
