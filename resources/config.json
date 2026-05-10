@@ -1,0 +1,14 @@
+{
+    "keybind": {
+        "K4": {
+            "key1": 65,
+            "key2": 83,
+            "key3": 75,
+            "key4": 76
+        }
+    },
+    "resolution": {
+        "width": 1280,
+        "height": 720
+    }
+}

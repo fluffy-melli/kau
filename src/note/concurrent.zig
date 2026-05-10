@@ -8,8 +8,8 @@ pub const Concurrent = struct {
     fallDurationMs: i64,
 
     pub inline fn init(
-        keyType1: types.KeyType,
-        keyType2: types.KeyType,
+        keyType1: types.KeyType4K,
+        keyType2: types.KeyType4K,
         hitTimeMs: i64,
         fallDurationMs: i64,
     ) Concurrent {

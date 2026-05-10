@@ -15,14 +15,34 @@ pub fn build(b: *std.Build) void {
     const raylib = raylib_dep.module("raylib");
     const raygui = raylib_dep.module("raygui");
 
-    const accuracy = b.addModule("accuracy", .{
-        .root_source_file = b.path("src/accuracy/_.zig"),
+    const constants = b.addModule("constants", .{
+        .root_source_file = b.path("src/constants/_.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     const types = b.addModule("types", .{
         .root_source_file = b.path("src/types/_.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    types.addImport("raylib", raylib);
+    types.addImport("raygui", raygui);
+
+    const settings = b.addModule("settings", .{
+        .root_source_file = b.path("src/settings/_.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    settings.addImport("raylib", raylib);
+    settings.addImport("raygui", raygui);
+    settings.addImport("types", types);
+    settings.addImport("constants", constants);
+
+    const accuracy = b.addModule("accuracy", .{
+        .root_source_file = b.path("src/accuracy/_.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -60,6 +80,7 @@ pub fn build(b: *std.Build) void {
     overlay.addImport("types", types);
     overlay.addImport("effect", effect);
     overlay.addImport("accuracy", accuracy);
+    overlay.addImport("settings", settings);
 
     const exe = b.addExecutable(.{
         .name = "kau",
@@ -78,6 +99,8 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addImport("types", types);
     exe.root_module.addImport("overlay", overlay);
     exe.root_module.addImport("accuracy", accuracy);
+    exe.root_module.addImport("settings", settings);
+    exe.root_module.addImport("constants", constants);
 
     b.installArtifact(exe);
 

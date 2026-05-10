@@ -4,64 +4,38 @@ const note = @import("note");
 const types = @import("types");
 const overlay = @import("overlay");
 const accuracy = @import("accuracy");
+const settings = @import("settings");
+const constants = @import("constants");
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
+    const io = init.io;
 
-    const r = types.Resolution{
-        .width = 1280,
-        .height = 720,
-    };
+    const config = try settings.Settings.load(allocator, io, constants.ConfigFilePath);
 
-    rl.initWindow(r.width, r.height, "kau");
+    rl.initWindow(config.resolution.width, config.resolution.height, "kau");
     defer rl.closeWindow();
 
-    const font = try rl.loadFont("resources/NotoSansKR-Bold.ttf");
+    const font = try rl.loadFont(constants.FontFilePath);
     defer rl.unloadFont(font);
 
-    var k4 = overlay.Judgment4K.init(allocator, r, font);
+    var k4 = overlay.Judgment4K.init(allocator, config, font);
     defer k4.deinit();
 
     for (1..64) |offset| {
         const offsetI64: i64 = @intCast(offset);
 
-        try k4.noteManager.appendShortNote(.{
-            .keyType = .key1,
-            .hitTimeMs = (offsetI64 * 1250),
-            .fallDurationMs = 750,
-        });
+        try k4.noteManager.appendShortNote(.init(.key1, offsetI64 * 1250, 750));
 
-        try k4.noteManager.appendShortNote(.{
-            .keyType = .key2,
-            .hitTimeMs = (offsetI64 * 1250) + 125,
-            .fallDurationMs = 750,
-        });
+        try k4.noteManager.appendShortNote(.init(.key2, (offsetI64 * 1250) + 125, 750));
 
-        try k4.noteManager.appendConcurrentNote(.{
-            .keyType1 = .key3,
-            .keyType2 = .key4,
-            .hitTimeMs = (offsetI64 * 1250) + 250,
-            .fallDurationMs = 750,
-        });
+        try k4.noteManager.appendConcurrentNote(.init(.key3, .key4, (offsetI64 * 1250) + 250, 750));
 
-        try k4.noteManager.appendShortNote(.{
-            .keyType = .key4,
-            .hitTimeMs = (offsetI64 * 1250) + 600,
-            .fallDurationMs = 750,
-        });
+        try k4.noteManager.appendShortNote(.init(.key4, (offsetI64 * 1250) + 600, 750));
 
-        try k4.noteManager.appendShortNote(.{
-            .keyType = .key3,
-            .hitTimeMs = (offsetI64 * 1250) + 725,
-            .fallDurationMs = 750,
-        });
+        try k4.noteManager.appendShortNote(.init(.key3, (offsetI64 * 1250) + 725, 750));
 
-        try k4.noteManager.appendConcurrentNote(.{
-            .keyType1 = .key1,
-            .keyType2 = .key2,
-            .hitTimeMs = (offsetI64 * 1250) + 850,
-            .fallDurationMs = 750,
-        });
+        try k4.noteManager.appendConcurrentNote(.init(.key1, .key2, (offsetI64 * 1250) + 850, 750));
     }
 
     while (!rl.windowShouldClose()) {

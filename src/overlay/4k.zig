@@ -4,6 +4,7 @@ const note = @import("note");
 const types = @import("types");
 const effect = @import("effect");
 const accuracy = @import("accuracy");
+const settings = @import("settings");
 
 pub const Judgment4K = struct {
     allocator: std.mem.Allocator,
@@ -52,7 +53,7 @@ pub const Judgment4K = struct {
     minMs: i64,
     maxMs: i64,
 
-    pub inline fn init(allocator: std.mem.Allocator, r: types.Resolution, font: rl.Font) Judgment4K {
+    pub inline fn init(allocator: std.mem.Allocator, config: settings.Settings, font: rl.Font) Judgment4K {
         const minMs: i64 = -150;
         const maxMs: i64 = 150;
 
@@ -61,29 +62,29 @@ pub const Judgment4K = struct {
 
         const effectLengthMs: i64 = 250;
 
-        const centerX: i32 = @divTrunc(r.width, 2);
+        const centerX: i32 = @divTrunc(config.resolution.width, 2);
 
         const note1X: i32 = centerX - @divTrunc(noteSizeX, 2) - noteSizeX;
         const note2X: i32 = centerX - @divTrunc(noteSizeX, 2);
         const note3X: i32 = centerX + @divTrunc(noteSizeX, 2);
         const note4X: i32 = centerX + @divTrunc(noteSizeX, 2) + noteSizeX;
 
-        const JLineY: i32 = r.height - 100;
+        const JLineY: i32 = config.resolution.height - 100;
 
-        const key1 = rl.KeyboardKey.a;
-        const key2 = rl.KeyboardKey.s;
-        const key3 = rl.KeyboardKey.k;
-        const key4 = rl.KeyboardKey.l;
+        const key1 = config.keybind.K4.key1;
+        const key2 = config.keybind.K4.key2;
+        const key3 = config.keybind.K4.key3;
+        const key4 = config.keybind.K4.key4;
 
         const noteEffect4K = effect.Note4K.init(effectLengthMs, note1X, note2X, note3X, note4X, noteSizeX, noteSizeY, JLineY);
-        const keyPressEffect4K = effect.keyPressEffect4K.init(r, note1X, note2X, note3X, note4X, noteSizeX, noteSizeY, key1, key2, key3, key4);
+        const keyPressEffect4K = effect.keyPressEffect4K.init(config.resolution, note1X, note2X, note3X, note4X, noteSizeX, noteSizeY, key1, key2, key3, key4);
 
         const noteManager = note.Manager.init(allocator);
         const accuracyManager = accuracy.Manager.init(allocator, minMs, maxMs);
 
         return Judgment4K{
             .allocator = allocator,
-            .resolution = r,
+            .resolution = config.resolution,
             .noteEffect4K = noteEffect4K,
             .keyPressEffect4K = keyPressEffect4K,
             .noteManager = noteManager,
