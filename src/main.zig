@@ -25,9 +25,17 @@ pub fn main(init: std.process.Init) !void {
     for (1..64) |offset| {
         const offsetI64: i64 = @intCast(offset);
 
-        try k4.noteManager.appendLongBasicNote(.init(.key1, offsetI64 * 3500, 1000, 1000));
+        try k4.noteManager4K.appendLongBasicNote(.init(.key1, offsetI64 * 3500, 1000, 1000));
 
-        try k4.noteManager.appendLongConcurrentNote(.init(.key3, .key4, offsetI64 * 3500 + 1500, 1000, 1000));
+        try k4.noteManager4K.appendShortBasicNote(.init(.key2, offsetI64 * 3500 + 500, 1000));
+
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key3, .key4, offsetI64 * 3500 + 1000, 1000));
+
+        try k4.noteManager4K.appendLongConcurrentNote(.init(.key3, .key4, offsetI64 * 3500 + 1500, 1000, 1000));
+
+        try k4.noteManager4K.appendShortBasicNote(.init(.key2, offsetI64 * 3500 + 2000, 1000));
+
+        try k4.noteManager4K.appendShortBasicNote(.init(.key1, offsetI64 * 3500 + 2500, 1000));
     }
 
     while (!rl.windowShouldClose()) {
@@ -40,6 +48,7 @@ pub fn main(init: std.process.Init) !void {
         k4.noteEffect4K.draw();
         k4.keyPressEffect4K.draw();
         try k4.drawNote();
+        try k4.renderNote();
         try k4.drawAccuracyGraph();
         try overlay.drawFPS(allocator, font);
     }

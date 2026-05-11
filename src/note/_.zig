@@ -1,3 +1,3 @@
 const manager = @import("manager.zig");
 
-pub const Manager = manager.Manager;
+pub const Manager4K = manager.Manager4K;

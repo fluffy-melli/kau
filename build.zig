@@ -41,8 +41,8 @@ pub fn build(b: *std.Build) void {
     settings.addImport("types", types);
     settings.addImport("constants", constants);
 
-    const accuracy = b.addModule("accuracy", .{
-        .root_source_file = b.path("src/accuracy/_.zig"),
+    const scores = b.addModule("scores", .{
+        .root_source_file = b.path("src/scores/_.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -56,6 +56,7 @@ pub fn build(b: *std.Build) void {
     note.addImport("raylib", raylib);
     note.addImport("raygui", raygui);
     note.addImport("types", types);
+    note.addImport("scores", scores);
 
     const effect = b.addModule("effect", .{
         .root_source_file = b.path("src/effect/_.zig"),
@@ -78,8 +79,8 @@ pub fn build(b: *std.Build) void {
     overlay.addImport("raygui", raygui);
     overlay.addImport("note", note);
     overlay.addImport("types", types);
+    overlay.addImport("scores", scores);
     overlay.addImport("effect", effect);
-    overlay.addImport("accuracy", accuracy);
     overlay.addImport("settings", settings);
 
     const exe = b.addExecutable(.{
@@ -97,8 +98,8 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addImport("raygui", raygui);
     exe.root_module.addImport("note", note);
     exe.root_module.addImport("types", types);
+    exe.root_module.addImport("scores", scores);
     exe.root_module.addImport("overlay", overlay);
-    exe.root_module.addImport("accuracy", accuracy);
     exe.root_module.addImport("settings", settings);
     exe.root_module.addImport("constants", constants);
 
