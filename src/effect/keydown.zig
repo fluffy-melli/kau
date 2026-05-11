@@ -20,7 +20,7 @@ pub const keyPressEffect4K = struct {
 
     keyPressColor: rl.Color,
 
-    pub inline fn init(
+    pub fn init(
         r: types.Resolution,
         note1X: i32,
         note2X: i32,
@@ -49,7 +49,7 @@ pub const keyPressEffect4K = struct {
         };
     }
 
-    inline fn laneX(self: keyPressEffect4K, key: types.KeyType4K) i32 {
+    fn laneX(self: keyPressEffect4K, key: types.KeyType4K) i32 {
         return switch (key) {
             .key1 => self.note1X,
             .key2 => self.note2X,
@@ -58,7 +58,7 @@ pub const keyPressEffect4K = struct {
         };
     }
 
-    inline fn keyDown(self: keyPressEffect4K, key: types.KeyType4K) bool {
+    fn keyDown(self: keyPressEffect4K, key: types.KeyType4K) bool {
         return switch (key) {
             .key1 => rl.isKeyDown(self.key1),
             .key2 => rl.isKeyDown(self.key2),
@@ -67,8 +67,8 @@ pub const keyPressEffect4K = struct {
         };
     }
 
-    pub inline fn draw(self: keyPressEffect4K) void {
-        inline for ([_]types.KeyType4K{
+    pub fn draw(self: keyPressEffect4K) void {
+        for ([_]types.KeyType4K{
             .key1,
             .key2,
             .key3,

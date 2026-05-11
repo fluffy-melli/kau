@@ -10,7 +10,7 @@ pub const Basic4K = struct {
     isPressed: bool,
     isReleased: bool,
 
-    pub inline fn init(
+    pub fn init(
         keyType: types.KeyType4K,
         hitTimeMs: i64,
         fallDurationMs: i64,
@@ -38,7 +38,7 @@ pub const Concurrent4K = struct {
     isPressed: bool,
     isReleased: bool,
 
-    pub inline fn init(
+    pub fn init(
         keyType1: types.KeyType4K,
         keyType2: types.KeyType4K,
         hitTimeMs: i64,

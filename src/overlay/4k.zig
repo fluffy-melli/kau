@@ -53,7 +53,7 @@ pub const Judgment4K = struct {
     minMs: i64,
     maxMs: i64,
 
-    pub inline fn init(allocator: std.mem.Allocator, config: settings.Settings, font: rl.Font) Judgment4K {
+    pub fn init(allocator: std.mem.Allocator, config: settings.Settings, font: rl.Font) Judgment4K {
         const minMs: i64 = -150;
         const maxMs: i64 = 150;
 
@@ -130,12 +130,12 @@ pub const Judgment4K = struct {
         };
     }
 
-    pub inline fn deinit(self: *Judgment4K) void {
+    pub fn deinit(self: *Judgment4K) void {
         self.noteManager.deinit();
         self.accuracyManager.deinit();
     }
 
-    inline fn laneX(self: Judgment4K, key: types.KeyType4K) i32 {
+    fn laneX(self: Judgment4K, key: types.KeyType4K) i32 {
         return switch (key) {
             .key1 => self.note1X,
             .key2 => self.note2X,
@@ -144,7 +144,7 @@ pub const Judgment4K = struct {
         };
     }
 
-    inline fn laneColor(self: Judgment4K, key: types.KeyType4K) rl.Color {
+    fn laneColor(self: Judgment4K, key: types.KeyType4K) rl.Color {
         return switch (key) {
             .key1 => self.line1Color,
             .key2 => self.line2Color,
@@ -153,7 +153,7 @@ pub const Judgment4K = struct {
         };
     }
 
-    inline fn keyPressed(self: Judgment4K, key: types.KeyType4K) bool {
+    fn keyPressed(self: Judgment4K, key: types.KeyType4K) bool {
         return switch (key) {
             .key1 => rl.isKeyPressed(self.key1),
             .key2 => rl.isKeyPressed(self.key2),
@@ -162,7 +162,7 @@ pub const Judgment4K = struct {
         };
     }
 
-    inline fn keyReleased(self: Judgment4K, key: types.KeyType4K) bool {
+    fn keyReleased(self: Judgment4K, key: types.KeyType4K) bool {
         return switch (key) {
             .key1 => rl.isKeyReleased(self.key1),
             .key2 => rl.isKeyReleased(self.key2),
@@ -171,7 +171,7 @@ pub const Judgment4K = struct {
         };
     }
 
-    inline fn keyDown(self: Judgment4K, key: types.KeyType4K) bool {
+    fn keyDown(self: Judgment4K, key: types.KeyType4K) bool {
         return switch (key) {
             .key1 => rl.isKeyDown(self.key1),
             .key2 => rl.isKeyDown(self.key2),
@@ -180,7 +180,7 @@ pub const Judgment4K = struct {
         };
     }
 
-    inline fn drawMarker(x: i32, y: i32, thickness: f32, color: rl.Color) void {
+    fn drawMarker(x: i32, y: i32, thickness: f32, color: rl.Color) void {
         rl.drawLineEx(
             rl.Vector2{
                 .x = @floatFromInt(x),
@@ -195,7 +195,7 @@ pub const Judgment4K = struct {
         );
     }
 
-    inline fn calcDrawX(
+    fn calcDrawX(
         ms: f64,
         max_range: f64,
         center_x: i32,
@@ -216,7 +216,7 @@ pub const Judgment4K = struct {
         return @intFromFloat(@as(f64, @floatFromInt(center_x)) + norm * half_width);
     }
 
-    inline fn drawCenteredText(
+    fn drawCenteredText(
         self: Judgment4K,
         text: [:0]const u8,
         x: f32,
@@ -239,7 +239,7 @@ pub const Judgment4K = struct {
         );
     }
 
-    inline fn drawShortBasicNote(self: *Judgment4K) !void {
+    fn drawShortBasicNote(self: *Judgment4K) !void {
         const nowTime = rl.getTime();
 
         const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
@@ -283,7 +283,7 @@ pub const Judgment4K = struct {
         try self.renderShortBasicNote();
     }
 
-    inline fn drawShortConcurrentNote(self: *Judgment4K) !void {
+    fn drawShortConcurrentNote(self: *Judgment4K) !void {
         const nowTime = rl.getTime();
 
         const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
@@ -335,7 +335,7 @@ pub const Judgment4K = struct {
         try self.renderShortConcurrentNote();
     }
 
-    inline fn drawLongBasicNote(self: *Judgment4K) !void {
+    fn drawLongBasicNote(self: *Judgment4K) !void {
         const nowTime = rl.getTime();
 
         const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
@@ -406,7 +406,7 @@ pub const Judgment4K = struct {
         try self.renderLongBasicNote();
     }
 
-    inline fn drawLongConcurrentNote(self: *Judgment4K) !void {
+    fn drawLongConcurrentNote(self: *Judgment4K) !void {
         const nowTime = rl.getTime();
 
         const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
@@ -493,7 +493,7 @@ pub const Judgment4K = struct {
         try self.renderLongConcurrentNote();
     }
 
-    inline fn renderShortBasicNote(self: *Judgment4K) !void {
+    fn renderShortBasicNote(self: *Judgment4K) !void {
         const nowTime = rl.getTime();
 
         const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
@@ -521,7 +521,7 @@ pub const Judgment4K = struct {
         }
     }
 
-    inline fn renderShortConcurrentNote(self: *Judgment4K) !void {
+    fn renderShortConcurrentNote(self: *Judgment4K) !void {
         const nowTime = rl.getTime();
 
         const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
@@ -553,7 +553,7 @@ pub const Judgment4K = struct {
         }
     }
 
-    inline fn renderLongBasicNote(self: *Judgment4K) !void {
+    fn renderLongBasicNote(self: *Judgment4K) !void {
         const nowTime = rl.getTime();
 
         const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
@@ -601,7 +601,7 @@ pub const Judgment4K = struct {
         }
     }
 
-    inline fn renderLongConcurrentNote(self: *Judgment4K) !void {
+    fn renderLongConcurrentNote(self: *Judgment4K) !void {
         const nowTime = rl.getTime();
 
         const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
@@ -662,7 +662,7 @@ pub const Judgment4K = struct {
         }
     }
 
-    inline fn noteEventShortBasic(
+    fn noteEventShortBasic(
         self: *Judgment4K,
         idx: usize,
         ms: i64,
@@ -675,7 +675,7 @@ pub const Judgment4K = struct {
         );
     }
 
-    inline fn noteEventShortConcurrent(
+    fn noteEventShortConcurrent(
         self: *Judgment4K,
         idx: usize,
         ms: i64,
@@ -688,7 +688,7 @@ pub const Judgment4K = struct {
         );
     }
 
-    inline fn noteEventLongBasic(
+    fn noteEventLongBasic(
         self: *Judgment4K,
         idx: usize,
         ms: i64,
@@ -704,7 +704,7 @@ pub const Judgment4K = struct {
         );
     }
 
-    inline fn noteEventLongConcurrent(
+    fn noteEventLongConcurrent(
         self: *Judgment4K,
         idx: usize,
         ms: i64,
@@ -720,7 +720,7 @@ pub const Judgment4K = struct {
         );
     }
 
-    pub inline fn drawLine(self: *Judgment4K) void {
+    pub fn drawLine(self: *Judgment4K) void {
         rl.drawLineEx(
             rl.Vector2{
                 .x = @floatFromInt(self.note1X),
@@ -756,14 +756,14 @@ pub const Judgment4K = struct {
         );
     }
 
-    pub inline fn drawNote(self: *Judgment4K) !void {
+    pub fn drawNote(self: *Judgment4K) !void {
         try self.drawShortBasicNote();
         try self.drawShortConcurrentNote();
         try self.drawLongBasicNote();
         try self.drawLongConcurrentNote();
     }
 
-    pub inline fn drawAccuracyGraph(self: Judgment4K) !void {
+    pub fn drawAccuracyGraph(self: Judgment4K) !void {
         const accStartX: i32 = self.note1X + 20;
         const accEndX: i32 = self.note4X + self.noteSizeX - 20;
 

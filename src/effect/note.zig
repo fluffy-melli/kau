@@ -19,7 +19,7 @@ pub const Note4K = struct {
 
     effectColor: rl.Color,
 
-    pub inline fn init(lengthMs: i64, note1X: i32, note2X: i32, note3X: i32, note4X: i32, noteSizeX: i32, noteSizeY: i32, JLineY: i32) Note4K {
+    pub fn init(lengthMs: i64, note1X: i32, note2X: i32, note3X: i32, note4X: i32, noteSizeX: i32, noteSizeY: i32, JLineY: i32) Note4K {
         return Note4K{
             .note1 = 0,
             .note2 = 0,
@@ -37,7 +37,7 @@ pub const Note4K = struct {
         };
     }
 
-    pub inline fn on(self: *Note4K, i: types.KeyType4K) void {
+    pub fn on(self: *Note4K, i: types.KeyType4K) void {
         switch (i) {
             .key1 => self.note1 = rl.getTime(),
             .key2 => self.note2 = rl.getTime(),
@@ -46,7 +46,7 @@ pub const Note4K = struct {
         }
     }
 
-    pub inline fn draw(self: Note4K) void {
+    pub fn draw(self: Note4K) void {
         const now = rl.getTime();
         const length = @as(f64, @floatFromInt(self.lengthMs)) / 1000.0;
 
