@@ -25,17 +25,9 @@ pub fn main(init: std.process.Init) !void {
     for (1..64) |offset| {
         const offsetI64: i64 = @intCast(offset);
 
-        try k4.noteManager.appendShortNote(.init(.key1, offsetI64 * 1250, 750));
+        try k4.noteManager.appendLongBasicNote(.init(.key1, offsetI64 * 3500, 1000, 1000));
 
-        try k4.noteManager.appendShortNote(.init(.key2, (offsetI64 * 1250) + 125, 750));
-
-        try k4.noteManager.appendConcurrentNote(.init(.key3, .key4, (offsetI64 * 1250) + 250, 750));
-
-        try k4.noteManager.appendShortNote(.init(.key4, (offsetI64 * 1250) + 600, 750));
-
-        try k4.noteManager.appendShortNote(.init(.key3, (offsetI64 * 1250) + 725, 750));
-
-        try k4.noteManager.appendConcurrentNote(.init(.key1, .key2, (offsetI64 * 1250) + 850, 750));
+        try k4.noteManager.appendLongConcurrentNote(.init(.key3, .key4, offsetI64 * 3500 + 1500, 1000, 1000));
     }
 
     while (!rl.windowShouldClose()) {
@@ -47,11 +39,8 @@ pub fn main(init: std.process.Init) !void {
         k4.drawLine();
         k4.noteEffect4K.draw();
         k4.keyPressEffect4K.draw();
-        try overlay.drawFPS(allocator, font);
-        try k4.drawShortNote();
-        try k4.drawConcurrentNote();
+        try k4.drawNote();
         try k4.drawAccuracyGraph();
-        try k4.renderShortNote();
-        try k4.renderConcurrentNote();
+        try overlay.drawFPS(allocator, font);
     }
 }

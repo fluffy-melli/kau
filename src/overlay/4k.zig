@@ -162,6 +162,15 @@ pub const Judgment4K = struct {
         };
     }
 
+    inline fn keyReleased(self: Judgment4K, key: types.KeyType4K) bool {
+        return switch (key) {
+            .key1 => rl.isKeyReleased(self.key1),
+            .key2 => rl.isKeyReleased(self.key2),
+            .key3 => rl.isKeyReleased(self.key3),
+            .key4 => rl.isKeyReleased(self.key4),
+        };
+    }
+
     inline fn keyDown(self: Judgment4K, key: types.KeyType4K) bool {
         return switch (key) {
             .key1 => rl.isKeyDown(self.key1),
@@ -230,6 +239,487 @@ pub const Judgment4K = struct {
         );
     }
 
+    inline fn drawShortBasicNote(self: *Judgment4K) !void {
+        const nowTime = rl.getTime();
+
+        const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
+
+        var idx: usize = 0;
+
+        while (idx < self.noteManager.shortBasic.items.len) {
+            const n = self.noteManager.shortBasic.items[idx];
+
+            const spawnTime = n.hitTimeMs - n.fallDurationMs;
+
+            if (posMs < spawnTime) {
+                idx += 1;
+                continue;
+            }
+
+            const elapsed = posMs - spawnTime;
+
+            const targetY = self.JLineY + @divTrunc(self.noteSizeY, 2);
+
+            const y: i32 = @as(i32, @intCast(@divTrunc(elapsed * @as(i64, @intCast(targetY)), n.fallDurationMs)));
+
+            const noteDrawY: i32 = y - @divTrunc(self.noteSizeY, 2);
+
+            if (noteDrawY > self.resolution.height) {
+                try self.noteEventShortBasic(idx, 0, true);
+                continue;
+            }
+
+            rl.drawRectangle(
+                self.laneX(n.keyType),
+                noteDrawY,
+                self.noteSizeX,
+                self.noteSizeY,
+                self.laneColor(n.keyType),
+            );
+
+            idx += 1;
+        }
+
+        try self.renderShortBasicNote();
+    }
+
+    inline fn drawShortConcurrentNote(self: *Judgment4K) !void {
+        const nowTime = rl.getTime();
+
+        const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
+
+        var idx: usize = 0;
+
+        while (idx < self.noteManager.shortConcurrent.items.len) {
+            const n = self.noteManager.shortConcurrent.items[idx];
+
+            const spawnTime = n.hitTimeMs - n.fallDurationMs;
+
+            if (posMs < spawnTime) {
+                idx += 1;
+                continue;
+            }
+
+            const elapsed = posMs - spawnTime;
+
+            const targetY = self.JLineY + @divTrunc(self.noteSizeY, 2);
+
+            const y: i32 = @as(i32, @intCast(@divTrunc(elapsed * @as(i64, @intCast(targetY)), n.fallDurationMs)));
+
+            const noteDrawY: i32 = y - @divTrunc(self.noteSizeY, 2);
+
+            if (noteDrawY > self.resolution.height) {
+                try self.noteEventShortConcurrent(idx, 0, true);
+                continue;
+            }
+
+            rl.drawRectangle(
+                self.laneX(n.keyType1),
+                noteDrawY,
+                self.noteSizeX,
+                self.noteSizeY,
+                self.concurrentLineColor,
+            );
+
+            rl.drawRectangle(
+                self.laneX(n.keyType2),
+                noteDrawY,
+                self.noteSizeX,
+                self.noteSizeY,
+                self.concurrentLineColor,
+            );
+
+            idx += 1;
+        }
+
+        try self.renderShortConcurrentNote();
+    }
+
+    inline fn drawLongBasicNote(self: *Judgment4K) !void {
+        const nowTime = rl.getTime();
+
+        const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
+
+        var idx: usize = 0;
+
+        while (idx < self.noteManager.longBasic.items.len) {
+            const n = self.noteManager.longBasic.items[idx];
+
+            const spawnTime = n.hitTimeMs - n.fallDurationMs;
+
+            if (posMs < spawnTime) {
+                idx += 1;
+                continue;
+            }
+
+            const headElapsed = posMs - spawnTime;
+            const targetY = self.JLineY + @divTrunc(self.noteSizeY, 2);
+
+            const headY: i32 = @as(i32, @intCast(@divTrunc(headElapsed * @as(i64, @intCast(targetY)), n.fallDurationMs)));
+
+            const tailHitTimeMs = n.hitTimeMs + n.holdingDurationMs;
+            const tailSpawnTime = tailHitTimeMs - n.fallDurationMs;
+            const tailElapsed = posMs - tailSpawnTime;
+
+            const tailY: i32 = @as(i32, @intCast(@divTrunc(tailElapsed * @as(i64, @intCast(targetY)), n.fallDurationMs)));
+
+            var actualHeadY = headY;
+            if (n.isPressed and actualHeadY > targetY) {
+                actualHeadY = targetY;
+            }
+
+            const halfSizeY = @divTrunc(self.noteSizeY, 2);
+            const headDrawY = actualHeadY - halfSizeY;
+            const tailDrawY = tailY - halfSizeY;
+
+            if (tailDrawY > self.resolution.height) {
+                try self.noteEventLongBasic(idx, 0, true, true);
+                continue;
+            }
+
+            const bodyY = tailDrawY;
+            const bodyHeight = actualHeadY - bodyY;
+
+            if (bodyHeight > 0) {
+                var bodyColor = self.laneColor(n.keyType);
+                bodyColor.a = 150;
+                rl.drawRectangle(
+                    self.laneX(n.keyType),
+                    bodyY,
+                    self.noteSizeX,
+                    bodyHeight,
+                    bodyColor,
+                );
+            }
+
+            rl.drawRectangle(
+                self.laneX(n.keyType),
+                headDrawY,
+                self.noteSizeX,
+                self.noteSizeY,
+                self.laneColor(n.keyType),
+            );
+
+            idx += 1;
+        }
+
+        try self.renderLongBasicNote();
+    }
+
+    inline fn drawLongConcurrentNote(self: *Judgment4K) !void {
+        const nowTime = rl.getTime();
+
+        const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
+
+        var idx: usize = 0;
+
+        while (idx < self.noteManager.longConcurrent.items.len) {
+            const n = self.noteManager.longConcurrent.items[idx];
+
+            const spawnTime = n.hitTimeMs - n.fallDurationMs;
+
+            if (posMs < spawnTime) {
+                idx += 1;
+                continue;
+            }
+
+            const headElapsed = posMs - spawnTime;
+            const targetY = self.JLineY + @divTrunc(self.noteSizeY, 2);
+
+            const headY: i32 = @as(i32, @intCast(@divTrunc(headElapsed * @as(i64, @intCast(targetY)), n.fallDurationMs)));
+
+            const tailHitTimeMs = n.hitTimeMs + n.holdingDurationMs;
+            const tailSpawnTime = tailHitTimeMs - n.fallDurationMs;
+            const tailElapsed = posMs - tailSpawnTime;
+
+            const tailY: i32 = @as(i32, @intCast(@divTrunc(tailElapsed * @as(i64, @intCast(targetY)), n.fallDurationMs)));
+
+            var actualHeadY = headY;
+            if (n.isPressed and actualHeadY > targetY) {
+                actualHeadY = targetY;
+            }
+
+            const halfSizeY = @divTrunc(self.noteSizeY, 2);
+            const headDrawY = actualHeadY - halfSizeY;
+            const tailDrawY = tailY - halfSizeY;
+
+            if (tailDrawY > self.resolution.height) {
+                try self.noteEventLongConcurrent(idx, 0, true, true);
+                continue;
+            }
+
+            const bodyY = tailDrawY;
+            const bodyHeight = actualHeadY - bodyY;
+
+            if (bodyHeight > 0) {
+                var bodyColor = self.concurrentLineColor;
+                bodyColor.a = 150;
+
+                rl.drawRectangle(
+                    self.laneX(n.keyType1),
+                    bodyY,
+                    self.noteSizeX,
+                    bodyHeight,
+                    bodyColor,
+                );
+
+                rl.drawRectangle(
+                    self.laneX(n.keyType2),
+                    bodyY,
+                    self.noteSizeX,
+                    bodyHeight,
+                    bodyColor,
+                );
+            }
+
+            rl.drawRectangle(
+                self.laneX(n.keyType1),
+                headDrawY,
+                self.noteSizeX,
+                self.noteSizeY,
+                self.concurrentLineColor,
+            );
+            rl.drawRectangle(
+                self.laneX(n.keyType2),
+                headDrawY,
+                self.noteSizeX,
+                self.noteSizeY,
+                self.concurrentLineColor,
+            );
+
+            idx += 1;
+        }
+
+        try self.renderLongConcurrentNote();
+    }
+
+    inline fn renderShortBasicNote(self: *Judgment4K) !void {
+        const nowTime = rl.getTime();
+
+        const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
+
+        var idx: usize = 0;
+
+        while (idx < self.noteManager.shortBasic.items.len) {
+            const n = self.noteManager.shortBasic.items[idx];
+
+            const errors = n.hitTimeMs - posMs;
+
+            var hit = false;
+
+            if (errors <= self.maxMs and errors >= self.minMs) {
+                hit = self.keyPressed(n.keyType);
+            }
+
+            if (hit) {
+                self.noteEffect4K.on(n.keyType);
+                try self.noteEventShortBasic(idx, errors, false);
+                break;
+            }
+
+            idx += 1;
+        }
+    }
+
+    inline fn renderShortConcurrentNote(self: *Judgment4K) !void {
+        const nowTime = rl.getTime();
+
+        const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
+
+        var idx: usize = 0;
+
+        while (idx < self.noteManager.shortConcurrent.items.len) {
+            const n = self.noteManager.shortConcurrent.items[idx];
+
+            const errors = n.hitTimeMs - posMs;
+
+            var hit = false;
+
+            if (errors <= self.maxMs and errors >= self.minMs) {
+                const hit1 = self.keyPressed(n.keyType1) and self.keyDown(n.keyType2);
+                const hit2 = self.keyDown(n.keyType1) and self.keyPressed(n.keyType2);
+                const hit3 = self.keyPressed(n.keyType1) and self.keyPressed(n.keyType2);
+                hit = hit1 or hit2 or hit3;
+            }
+
+            if (hit) {
+                self.noteEffect4K.on(n.keyType1);
+                self.noteEffect4K.on(n.keyType2);
+                try self.noteEventShortConcurrent(idx, errors, false);
+                break;
+            }
+
+            idx += 1;
+        }
+    }
+
+    inline fn renderLongBasicNote(self: *Judgment4K) !void {
+        const nowTime = rl.getTime();
+
+        const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
+
+        var idx: usize = 0;
+
+        while (idx < self.noteManager.longBasic.items.len) {
+            var n = &self.noteManager.longBasic.items[idx];
+
+            const hitErrors = n.hitTimeMs - posMs;
+            const releaseErrors = n.hitTimeMs + n.holdingDurationMs - posMs;
+
+            var deleted = false;
+
+            if (!n.isPressed) {
+                if (hitErrors <= self.maxMs and hitErrors >= self.minMs) {
+                    if (self.keyPressed(n.keyType)) {
+                        self.noteEffect4K.on(n.keyType);
+                        n.isPressed = true;
+                        try self.noteEventLongBasic(idx, hitErrors, false, false);
+                    }
+                } else if (hitErrors < self.minMs) {
+                    try self.noteEventLongBasic(idx, hitErrors, true, false);
+                    try self.noteEventLongBasic(idx, releaseErrors, true, true);
+                    deleted = true;
+                }
+            } else {
+                if (self.keyReleased(n.keyType)) {
+                    if (releaseErrors <= self.maxMs and releaseErrors >= self.minMs) {
+                        try self.noteEventLongBasic(idx, releaseErrors, false, true);
+                        deleted = true;
+                    } else {
+                        try self.noteEventLongBasic(idx, releaseErrors, true, true);
+                        deleted = true;
+                    }
+                } else if (releaseErrors < self.minMs) {
+                    try self.noteEventLongBasic(idx, releaseErrors, true, true);
+                    deleted = true;
+                }
+            }
+
+            if (!deleted) {
+                idx += 1;
+            }
+        }
+    }
+
+    inline fn renderLongConcurrentNote(self: *Judgment4K) !void {
+        const nowTime = rl.getTime();
+
+        const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
+
+        var idx: usize = 0;
+
+        while (idx < self.noteManager.longConcurrent.items.len) {
+            var n = &self.noteManager.longConcurrent.items[idx];
+
+            const hitErrors = n.hitTimeMs - posMs;
+            const releaseErrors = n.hitTimeMs + n.holdingDurationMs - posMs;
+
+            var deleted = false;
+
+            if (!n.isPressed) {
+                var hit = false;
+                if (hitErrors <= self.maxMs and hitErrors >= self.minMs) {
+                    const hit1 = self.keyPressed(n.keyType1) and self.keyDown(n.keyType2);
+                    const hit2 = self.keyDown(n.keyType1) and self.keyPressed(n.keyType2);
+                    const hit3 = self.keyPressed(n.keyType1) and self.keyPressed(n.keyType2);
+                    hit = hit1 or hit2 or hit3;
+                }
+
+                if (hit) {
+                    self.noteEffect4K.on(n.keyType1);
+                    self.noteEffect4K.on(n.keyType2);
+                    n.isPressed = true;
+                    try self.noteEventLongConcurrent(idx, hitErrors, false, false);
+                } else if (hitErrors < self.minMs) {
+                    try self.noteEventLongConcurrent(idx, hitErrors, true, false);
+                    try self.noteEventLongConcurrent(idx, releaseErrors, true, true);
+                    deleted = true;
+                }
+            } else {
+                var releaseHit = false;
+                if (releaseErrors <= self.maxMs and releaseErrors >= self.minMs) {
+                    const release1 = self.keyReleased(n.keyType1) and self.keyDown(n.keyType2);
+                    const release2 = self.keyDown(n.keyType1) and self.keyReleased(n.keyType2);
+                    const release3 = self.keyReleased(n.keyType1) and self.keyReleased(n.keyType2);
+                    releaseHit = release1 or release2 or release3;
+                }
+
+                if (releaseHit) {
+                    try self.noteEventLongConcurrent(idx, releaseErrors, false, true);
+                    deleted = true;
+                } else if (self.keyReleased(n.keyType1) or self.keyReleased(n.keyType2)) {
+                    try self.noteEventLongConcurrent(idx, releaseErrors, true, true);
+                    deleted = true;
+                } else if (releaseErrors < self.minMs) {
+                    try self.noteEventLongConcurrent(idx, releaseErrors, true, true);
+                    deleted = true;
+                }
+            }
+
+            if (!deleted) {
+                idx += 1;
+            }
+        }
+    }
+
+    inline fn noteEventShortBasic(
+        self: *Judgment4K,
+        idx: usize,
+        ms: i64,
+        miss: bool,
+    ) !void {
+        self.noteManager.deleteShortBasicNote(idx);
+
+        try self.accuracyManager.addAccuracy(
+            accuracy.Accuracy.init(ms, miss),
+        );
+    }
+
+    inline fn noteEventShortConcurrent(
+        self: *Judgment4K,
+        idx: usize,
+        ms: i64,
+        miss: bool,
+    ) !void {
+        self.noteManager.deleteShortConcurrentNote(idx);
+
+        try self.accuracyManager.addAccuracy(
+            accuracy.Accuracy.init(ms, miss),
+        );
+    }
+
+    inline fn noteEventLongBasic(
+        self: *Judgment4K,
+        idx: usize,
+        ms: i64,
+        miss: bool,
+        delete: bool,
+    ) !void {
+        if (delete) {
+            self.noteManager.deleteLongBasicNote(idx);
+        }
+
+        try self.accuracyManager.addAccuracy(
+            accuracy.Accuracy.init(ms, miss),
+        );
+    }
+
+    inline fn noteEventLongConcurrent(
+        self: *Judgment4K,
+        idx: usize,
+        ms: i64,
+        miss: bool,
+        delete: bool,
+    ) !void {
+        if (delete) {
+            self.noteManager.deleteLongConcurrentNote(idx);
+        }
+
+        try self.accuracyManager.addAccuracy(
+            accuracy.Accuracy.init(ms, miss),
+        );
+    }
+
     pub inline fn drawLine(self: *Judgment4K) void {
         rl.drawLineEx(
             rl.Vector2{
@@ -266,96 +756,11 @@ pub const Judgment4K = struct {
         );
     }
 
-    pub inline fn drawShortNote(self: *Judgment4K) !void {
-        const nowTime = rl.getTime();
-
-        const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
-
-        var idx: usize = 0;
-
-        while (idx < self.noteManager.shorts.items.len) {
-            const n = self.noteManager.shorts.items[idx];
-
-            const spawnTime = n.hitTimeMs - n.fallDurationMs;
-
-            if (posMs < spawnTime) {
-                idx += 1;
-                continue;
-            }
-
-            const elapsed = posMs - spawnTime;
-
-            const targetY = self.JLineY + @divTrunc(self.noteSizeY, 2);
-
-            const y: i32 = @as(i32, @intCast(@divTrunc(elapsed * @as(i64, @intCast(targetY)), n.fallDurationMs)));
-
-            const noteDrawY: i32 = y - @divTrunc(self.noteSizeY, 2);
-
-            if (noteDrawY > self.resolution.height) {
-                try self.shortNoteEvent(idx, 0, true);
-                continue;
-            }
-
-            rl.drawRectangle(
-                self.laneX(n.keyType),
-                noteDrawY,
-                self.noteSizeX,
-                self.noteSizeY,
-                self.laneColor(n.keyType),
-            );
-
-            idx += 1;
-        }
-    }
-
-    pub inline fn drawConcurrentNote(self: *Judgment4K) !void {
-        const nowTime = rl.getTime();
-
-        const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
-
-        var idx: usize = 0;
-
-        while (idx < self.noteManager.concurrents.items.len) {
-            const n = self.noteManager.concurrents.items[idx];
-
-            const spawnTime = n.hitTimeMs - n.fallDurationMs;
-
-            if (posMs < spawnTime) {
-                idx += 1;
-                continue;
-            }
-
-            const elapsed = posMs - spawnTime;
-
-            const targetY = self.JLineY + @divTrunc(self.noteSizeY, 2);
-
-            const y: i32 = @as(i32, @intCast(@divTrunc(elapsed * @as(i64, @intCast(targetY)), n.fallDurationMs)));
-
-            const noteDrawY: i32 = y - @divTrunc(self.noteSizeY, 2);
-
-            if (noteDrawY > self.resolution.height) {
-                try self.concurrentNoteEvent(idx, 0, true);
-                continue;
-            }
-
-            rl.drawRectangle(
-                self.laneX(n.keyType1),
-                noteDrawY,
-                self.noteSizeX,
-                self.noteSizeY,
-                self.concurrentLineColor,
-            );
-
-            rl.drawRectangle(
-                self.laneX(n.keyType2),
-                noteDrawY,
-                self.noteSizeX,
-                self.noteSizeY,
-                self.concurrentLineColor,
-            );
-
-            idx += 1;
-        }
+    pub inline fn drawNote(self: *Judgment4K) !void {
+        try self.drawShortBasicNote();
+        try self.drawShortConcurrentNote();
+        try self.drawLongBasicNote();
+        try self.drawLongConcurrentNote();
     }
 
     pub inline fn drawAccuracyGraph(self: Judgment4K) !void {
@@ -551,92 +956,6 @@ pub const Judgment4K = struct {
             @floatFromInt(accCenterY + 11),
             17,
             self.lateColor,
-        );
-    }
-
-    pub inline fn renderShortNote(self: *Judgment4K) !void {
-        const nowTime = rl.getTime();
-
-        const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
-
-        var idx: usize = 0;
-
-        while (idx < self.noteManager.shorts.items.len) {
-            const n = self.noteManager.shorts.items[idx];
-
-            const errors = n.hitTimeMs - posMs;
-
-            var hit = false;
-
-            if (errors <= self.maxMs and errors >= self.minMs) {
-                hit = self.keyPressed(n.keyType);
-            }
-
-            if (hit) {
-                self.noteEffect4K.on(n.keyType);
-                try self.shortNoteEvent(idx, errors, false);
-                break;
-            }
-
-            idx += 1;
-        }
-    }
-
-    pub inline fn renderConcurrentNote(self: *Judgment4K) !void {
-        const nowTime = rl.getTime();
-
-        const posMs = @as(i64, @intFromFloat((nowTime - @as(f64, @floatFromInt(self.noteManager.currentTime))) * 1000.0));
-
-        var idx: usize = 0;
-
-        while (idx < self.noteManager.concurrents.items.len) {
-            const n = self.noteManager.concurrents.items[idx];
-
-            const errors = n.hitTimeMs - posMs;
-
-            var hit = false;
-
-            if (errors <= self.maxMs and errors >= self.minMs) {
-                const hit1 = self.keyPressed(n.keyType1) and self.keyDown(n.keyType2);
-                const hit2 = self.keyDown(n.keyType1) and self.keyPressed(n.keyType2);
-                const hit3 = self.keyPressed(n.keyType1) and self.keyPressed(n.keyType2);
-                hit = hit1 or hit2 or hit3;
-            }
-
-            if (hit) {
-                self.noteEffect4K.on(n.keyType1);
-                self.noteEffect4K.on(n.keyType2);
-                try self.concurrentNoteEvent(idx, errors, false);
-                break;
-            }
-
-            idx += 1;
-        }
-    }
-
-    inline fn shortNoteEvent(
-        self: *Judgment4K,
-        idx: usize,
-        ms: i64,
-        miss: bool,
-    ) !void {
-        self.noteManager.deleteShortNote(idx);
-
-        try self.accuracyManager.addAccuracy(
-            accuracy.Accuracy.init(ms, miss),
-        );
-    }
-
-    inline fn concurrentNoteEvent(
-        self: *Judgment4K,
-        idx: usize,
-        ms: i64,
-        miss: bool,
-    ) !void {
-        self.noteManager.deleteConcurrentNote(idx);
-
-        try self.accuracyManager.addAccuracy(
-            accuracy.Accuracy.init(ms, miss),
         );
     }
 };
