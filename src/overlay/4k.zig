@@ -4,6 +4,7 @@ const note = @import("note");
 const types = @import("types");
 const effect = @import("effect");
 const settings = @import("settings");
+const constants = @import("constants");
 
 pub const Judgment4K = struct {
     allocator: std.mem.Allocator,
@@ -42,16 +43,9 @@ pub const Judgment4K = struct {
     key4: rl.KeyboardKey,
 
     font: rl.Font,
-
-    decisionTimeMs: i64,
-
     pub fn init(allocator: std.mem.Allocator, config: settings.Settings, font: rl.Font) Judgment4K {
-        const decisionTimeMs: i64 = 150;
-
         const noteSizeX: i32 = 74;
         const noteSizeY: i32 = 24;
-
-        const effectLengthMs: i64 = 250;
 
         const centerX: i32 = @divTrunc(config.resolution.width, 2);
 
@@ -60,7 +54,7 @@ pub const Judgment4K = struct {
         const note3X: i32 = centerX + @divTrunc(noteSizeX, 2);
         const note4X: i32 = centerX + @divTrunc(noteSizeX, 2) + noteSizeX;
 
-        const JLineY: i32 = config.resolution.height - 100;
+        const JLineY: i32 = config.resolution.height - 130;
 
         const key1 = config.keybind.K4.key1;
         const key2 = config.keybind.K4.key2;
@@ -83,8 +77,6 @@ pub const Judgment4K = struct {
 
         const noteManager4K = note.Manager4K.init(
             allocator,
-            decisionTimeMs,
-            effectLengthMs,
             note1X,
             note2X,
             note3X,
@@ -130,8 +122,6 @@ pub const Judgment4K = struct {
             .key4 = key4,
 
             .font = font,
-
-            .decisionTimeMs = decisionTimeMs,
         };
     }
 
@@ -240,9 +230,9 @@ pub const Judgment4K = struct {
 
         const centerX: i32 = @divTrunc(accStartX + accEndX, 2);
 
-        const accCenterY: i32 = self.JLineY + 58;
+        const accCenterY: i32 = self.JLineY - 56;
 
-        const maxRange: f64 = @floatFromInt(self.decisionTimeMs);
+        const maxRange: f64 = @floatFromInt(constants.DecisionTimeMs);
 
         const halfWidth: f64 = @as(f64, @floatFromInt(accEndX - accStartX)) * 0.5;
 
@@ -296,7 +286,7 @@ pub const Judgment4K = struct {
                     firstMiss = true;
                 }
 
-                sum -= self.decisionTimeMs;
+                sum -= constants.DecisionTimeMs;
             } else {
                 const drawX = calcDrawX(
                     @as(f64, @floatFromInt(acc.ms)),
@@ -415,6 +405,34 @@ pub const Judgment4K = struct {
             @floatFromInt(accCenterY + 11),
             17,
             self.lateColor,
+        );
+    }
+
+    pub fn drawScore(self: *Judgment4K) !void {
+        const centerX: i32 = @divTrunc(self.note1X + self.note4X + self.noteSizeX, 2);
+
+        const score = self.noteManager4K.scoreManager.getScore(true);
+
+        const scoreStr = try std.fmt.allocPrint(self.allocator, "{d}", .{score});
+        defer self.allocator.free(scoreStr);
+
+        const cstr = try self.allocator.dupeZ(u8, scoreStr);
+        defer self.allocator.free(cstr);
+
+        self.drawCenteredText(
+            "SCORE",
+            @floatFromInt(centerX),
+            @floatFromInt(self.JLineY + 40),
+            31,
+            self.accuracyColor,
+        );
+
+        self.drawCenteredText(
+            cstr,
+            @floatFromInt(centerX),
+            @floatFromInt(self.JLineY + 70),
+            32,
+            self.accuracyColor,
         );
     }
 

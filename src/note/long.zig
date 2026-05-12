@@ -1,5 +1,6 @@
 const rl = @import("raylib");
 const types = @import("types");
+const constants = @import("constants");
 
 fn keyReleased(
     key: types.KeyType4K,
@@ -185,7 +186,7 @@ pub const Basic4K = struct {
                         headDrawY,
                         noteSizeX,
                         noteSizeY,
-                        innerHeadColor,
+                        outerHeadColor,
                     );
                 }
 
@@ -194,7 +195,7 @@ pub const Basic4K = struct {
                     tailDrawY,
                     noteSizeX,
                     bodyHeight,
-                    innerBodyColor,
+                    outerBodyColor,
                 );
             },
         }
@@ -205,7 +206,6 @@ pub const Basic4K = struct {
     pub fn render(
         self: *Basic4K,
         posMs: i64,
-        decisionTimeMs: i64,
         key1: rl.KeyboardKey,
         key2: rl.KeyboardKey,
         key3: rl.KeyboardKey,
@@ -216,19 +216,19 @@ pub const Basic4K = struct {
 
         if (!self.isPressed) {
             const hit = keyPressed(self.keyType, key1, key2, key3, key4);
-            if (hitErrors <= decisionTimeMs and hitErrors >= -decisionTimeMs and hit) {
+            if (hitErrors <= constants.DecisionTimeMs and hitErrors >= -constants.DecisionTimeMs and hit) {
                 self.isPressed = true;
                 return hitErrors;
             }
         } else {
             const release = keyReleased(self.keyType, key1, key2, key3, key4);
-            if (releaseErrors <= decisionTimeMs and releaseErrors >= -decisionTimeMs and release) {
+            if (releaseErrors <= constants.DecisionTimeMs and releaseErrors >= -constants.DecisionTimeMs and release) {
                 self.isReleased = true;
                 return releaseErrors;
             }
         }
 
-        return decisionTimeMs + 1;
+        return constants.DecisionTimeMs + 1;
     }
 };
 
@@ -471,7 +471,6 @@ pub const Concurrent4K = struct {
     pub fn render(
         self: *Concurrent4K,
         posMs: i64,
-        decisionTimeMs: i64,
         key1: rl.KeyboardKey,
         key2: rl.KeyboardKey,
         key3: rl.KeyboardKey,
@@ -481,7 +480,7 @@ pub const Concurrent4K = struct {
         const releaseErrors = self.hitTimeMs + self.holdingDurationMs - posMs;
 
         if (!self.isPressed) {
-            if (hitErrors <= decisionTimeMs and hitErrors >= -decisionTimeMs) {
+            if (hitErrors <= constants.DecisionTimeMs and hitErrors >= -constants.DecisionTimeMs) {
                 const pressed1 = keyPressed(self.keyType1, key1, key2, key3, key4);
                 const pressed2 = keyPressed(self.keyType2, key1, key2, key3, key4);
 
@@ -498,7 +497,7 @@ pub const Concurrent4K = struct {
                 }
             }
         } else {
-            if (releaseErrors <= decisionTimeMs and releaseErrors >= -decisionTimeMs) {
+            if (releaseErrors <= constants.DecisionTimeMs and releaseErrors >= -constants.DecisionTimeMs) {
                 const released1 = keyReleased(self.keyType1, key1, key2, key3, key4);
                 const released2 = keyReleased(self.keyType2, key1, key2, key3, key4);
 
@@ -516,6 +515,6 @@ pub const Concurrent4K = struct {
             }
         }
 
-        return decisionTimeMs + 1;
+        return constants.DecisionTimeMs + 1;
     }
 };

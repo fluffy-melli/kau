@@ -22,20 +22,33 @@ pub fn main(init: std.process.Init) !void {
     var k4 = overlay.Judgment4K.init(allocator, config, font);
     defer k4.deinit();
 
-    for (1..64) |offset| {
-        const offsetI64: i64 = @intCast(offset);
+    for (1..128) |i| {
+        const time: i64 = @as(i64, @intCast(i)) * 2400 - 1600;
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key1, .key2, time, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key2, .key3, time + 100, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key1, .key2, time + 200, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key2, .key3, time + 300, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key1, .key2, time + 400, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key2, .key3, time + 500, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key1, .key2, time + 600, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key2, .key3, time + 700, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key1, .key2, time + 800, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key2, .key3, time + 900, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key1, .key2, time + 1000, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key2, .key3, time + 1100, 1250));
 
-        try k4.noteManager4K.appendLongBasicNote(.init(.key1, offsetI64 * 3500, 750, 1000));
-
-        try k4.noteManager4K.appendShortBasicNote(.init(.key2, offsetI64 * 3500 + 500, 750));
-
-        try k4.noteManager4K.appendShortConcurrentNote(.init(.key3, .key4, offsetI64 * 3500 + 1000, 750));
-
-        try k4.noteManager4K.appendLongConcurrentNote(.init(.key3, .key4, offsetI64 * 3500 + 1500, 750, 1000));
-
-        try k4.noteManager4K.appendShortBasicNote(.init(.key2, offsetI64 * 3500 + 2000, 750));
-
-        try k4.noteManager4K.appendShortBasicNote(.init(.key1, offsetI64 * 3500 + 2500, 750));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key3, .key4, time + 1200, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key2, .key3, time + 1300, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key3, .key4, time + 1400, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key2, .key3, time + 1500, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key3, .key4, time + 1600, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key2, .key3, time + 1700, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key3, .key4, time + 1800, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key2, .key3, time + 1900, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key3, .key4, time + 2000, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key2, .key3, time + 2100, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key3, .key4, time + 2200, 1250));
+        try k4.noteManager4K.appendShortConcurrentNote(.init(.key2, .key3, time + 2300, 1250));
     }
 
     while (!rl.windowShouldClose()) {
@@ -45,6 +58,7 @@ pub fn main(init: std.process.Init) !void {
         rl.clearBackground(.black);
 
         k4.drawLine();
+        try k4.drawScore();
         k4.keyPressEffect4K.draw();
         try k4.drawNote();
         try k4.renderNote();

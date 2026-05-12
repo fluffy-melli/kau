@@ -4,6 +4,7 @@ const long = @import("long.zig");
 const short = @import("short.zig");
 const scores = @import("scores");
 const effect = @import("effect");
+const constants = @import("constants");
 
 pub const Manager4K = struct {
     allocator: std.mem.Allocator,
@@ -16,7 +17,6 @@ pub const Manager4K = struct {
 
     noteEffect4K: effect.Note4K,
     scoreManager: scores.Manager,
-    decisionTimeMs: i64,
     currentTime: i64,
 
     note1X: i32,
@@ -37,8 +37,6 @@ pub const Manager4K = struct {
 
     pub fn init(
         allocator: std.mem.Allocator,
-        decisionTimeMs: i64,
-        effectLengthMs: i64,
         note1X: i32,
         note2X: i32,
         note3X: i32,
@@ -49,7 +47,6 @@ pub const Manager4K = struct {
         noteSizeY: i32,
     ) Manager4K {
         const noteEffect4K = effect.Note4K.init(
-            effectLengthMs,
             note1X,
             note2X,
             note3X,
@@ -59,14 +56,13 @@ pub const Manager4K = struct {
             JLineY,
         );
 
-        const scoreManager = scores.Manager.init(allocator, decisionTimeMs);
+        const scoreManager = scores.Manager.init(allocator);
         return Manager4K{
             .allocator = allocator,
             .shortBasic = .empty,
             .shortConcurrent = .empty,
             .longBasic = .empty,
             .longConcurrent = .empty,
-            .decisionTimeMs = decisionTimeMs,
             .currentTime = 0,
             .noteEffect4K = noteEffect4K,
             .scoreManager = scoreManager,
@@ -230,14 +226,13 @@ pub const Manager4K = struct {
             const note = self.shortBasic.items[idx];
             const errors = note.render(
                 @as(i64, @intFromFloat((rl.getTime() - @as(f64, @floatFromInt(self.currentTime))) * 1000.0)),
-                self.decisionTimeMs,
                 key1,
                 key2,
                 key3,
                 key4,
             );
 
-            if (errors != self.decisionTimeMs + 1) {
+            if (errors != constants.DecisionTimeMs + 1) {
                 _ = self.shortBasic.swapRemove(idx);
                 self.noteEffect4K.on(note.keyType);
                 try self.scoreManager.addAccuracy(.init(errors, false));
@@ -260,14 +255,13 @@ pub const Manager4K = struct {
             const note = self.shortConcurrent.items[idx];
             const errors = note.render(
                 @as(i64, @intFromFloat((rl.getTime() - @as(f64, @floatFromInt(self.currentTime))) * 1000.0)),
-                self.decisionTimeMs,
                 key1,
                 key2,
                 key3,
                 key4,
             );
 
-            if (errors != self.decisionTimeMs + 1) {
+            if (errors != constants.DecisionTimeMs + 1) {
                 _ = self.shortConcurrent.swapRemove(idx);
                 self.noteEffect4K.on(note.keyType1);
                 self.noteEffect4K.on(note.keyType2);
@@ -291,7 +285,6 @@ pub const Manager4K = struct {
             const note = &self.longBasic.items[idx];
             const errors = note.render(
                 @as(i64, @intFromFloat((rl.getTime() - @as(f64, @floatFromInt(self.currentTime))) * 1000.0)),
-                self.decisionTimeMs,
                 key1,
                 key2,
                 key3,
@@ -302,7 +295,7 @@ pub const Manager4K = struct {
                 self.noteEffect4K.on(note.keyType);
             }
 
-            if (errors != self.decisionTimeMs + 1) {
+            if (errors != constants.DecisionTimeMs + 1) {
                 if (!note.isReleased) {
                     try self.scoreManager.addAccuracy(.init(errors, false));
                 } else {
@@ -328,7 +321,6 @@ pub const Manager4K = struct {
             const note = &self.longConcurrent.items[idx];
             const errors = note.render(
                 @as(i64, @intFromFloat((rl.getTime() - @as(f64, @floatFromInt(self.currentTime))) * 1000.0)),
-                self.decisionTimeMs,
                 key1,
                 key2,
                 key3,
@@ -340,7 +332,7 @@ pub const Manager4K = struct {
                 self.noteEffect4K.on(note.keyType2);
             }
 
-            if (errors != self.decisionTimeMs + 1) {
+            if (errors != constants.DecisionTimeMs + 1) {
                 if (!note.isReleased) {
                     try self.scoreManager.addAccuracy(.init(errors, false));
                 } else {

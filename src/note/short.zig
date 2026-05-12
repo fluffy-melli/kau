@@ -1,5 +1,6 @@
 const rl = @import("raylib");
 const types = @import("types");
+const constants = @import("constants");
 
 fn keyPressed(
     key: types.KeyType4K,
@@ -118,7 +119,6 @@ pub const Basic4K = struct {
     pub fn render(
         self: Basic4K,
         posMs: i64,
-        decisionTimeMs: i64,
         key1: rl.KeyboardKey,
         key2: rl.KeyboardKey,
         key3: rl.KeyboardKey,
@@ -126,13 +126,13 @@ pub const Basic4K = struct {
     ) i64 {
         const errors = self.hitTimeMs - posMs;
 
-        if (errors <= decisionTimeMs and errors >= -decisionTimeMs) {
+        if (errors <= constants.DecisionTimeMs and errors >= -constants.DecisionTimeMs) {
             if (keyPressed(self.keyType, key1, key2, key3, key4)) {
                 return errors;
             }
         }
 
-        return decisionTimeMs + 1;
+        return constants.DecisionTimeMs + 1;
     }
 };
 
@@ -256,7 +256,6 @@ pub const Concurrent4K = struct {
     pub fn render(
         self: Concurrent4K,
         posMs: i64,
-        decisionTimeMs: i64,
         key1: rl.KeyboardKey,
         key2: rl.KeyboardKey,
         key3: rl.KeyboardKey,
@@ -264,7 +263,7 @@ pub const Concurrent4K = struct {
     ) i64 {
         const errors = self.hitTimeMs - posMs;
 
-        if (errors <= decisionTimeMs and errors >= -decisionTimeMs) {
+        if (errors <= constants.DecisionTimeMs and errors >= -constants.DecisionTimeMs) {
             const pressed1 = keyPressed(self.keyType1, key1, key2, key3, key4);
             const pressed2 = keyPressed(self.keyType2, key1, key2, key3, key4);
 
@@ -280,6 +279,6 @@ pub const Concurrent4K = struct {
             }
         }
 
-        return decisionTimeMs + 1;
+        return constants.DecisionTimeMs + 1;
     }
 };
