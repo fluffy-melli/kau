@@ -3,6 +3,7 @@ const std = @import("std");
 const long = @import("long.zig");
 const short = @import("short.zig");
 const scores = @import("scores");
+const effect = @import("effect");
 
 pub const Manager4K = struct {
     allocator: std.mem.Allocator,
@@ -13,7 +14,9 @@ pub const Manager4K = struct {
     longBasic: std.ArrayList(long.Basic4K),
     longConcurrent: std.ArrayList(long.Concurrent4K),
 
+    noteEffect4K: effect.Note4K,
     scoreManager: scores.Manager,
+    decisionTimeMs: i64,
     currentTime: i64,
 
     note1X: i32,
@@ -35,6 +38,7 @@ pub const Manager4K = struct {
     pub fn init(
         allocator: std.mem.Allocator,
         decisionTimeMs: i64,
+        effectLengthMs: i64,
         note1X: i32,
         note2X: i32,
         note3X: i32,
@@ -44,6 +48,17 @@ pub const Manager4K = struct {
         noteSizeX: i32,
         noteSizeY: i32,
     ) Manager4K {
+        const noteEffect4K = effect.Note4K.init(
+            effectLengthMs,
+            note1X,
+            note2X,
+            note3X,
+            note4X,
+            noteSizeX,
+            noteSizeY,
+            JLineY,
+        );
+
         const scoreManager = scores.Manager.init(allocator, decisionTimeMs);
         return Manager4K{
             .allocator = allocator,
@@ -51,7 +66,9 @@ pub const Manager4K = struct {
             .shortConcurrent = .empty,
             .longBasic = .empty,
             .longConcurrent = .empty,
+            .decisionTimeMs = decisionTimeMs,
             .currentTime = 0,
+            .noteEffect4K = noteEffect4K,
             .scoreManager = scoreManager,
             .note1X = note1X,
             .note2X = note2X,
@@ -78,64 +95,12 @@ pub const Manager4K = struct {
         self.scoreManager.deinit();
     }
 
-    pub fn resetTime(self: *Manager4K) void {
-        self.currentTime = @as(i64, @intFromFloat(rl.getTime()));
-    }
-
-    pub fn appendShortBasicNote(self: *Manager4K, note: short.Basic4K) !void {
-        try self.shortBasic.append(self.allocator, note);
-    }
-
-    pub fn deleteShortBasicNote(self: *Manager4K, idx: usize) void {
-        _ = self.shortBasic.swapRemove(idx);
-    }
-
-    pub fn resetShortBasicNote(self: *Manager4K) void {
-        self.shortBasic.clearRetainingCapacity();
-    }
-
-    pub fn appendShortConcurrentNote(self: *Manager4K, note: short.Concurrent4K) !void {
-        try self.shortConcurrent.append(self.allocator, note);
-    }
-
-    pub fn deleteShortConcurrentNote(self: *Manager4K, idx: usize) void {
-        _ = self.shortConcurrent.swapRemove(idx);
-    }
-
-    pub fn resetShortConcurrentNote(self: *Manager4K) void {
-        self.shortConcurrent.clearRetainingCapacity();
-    }
-
-    pub fn appendLongBasicNote(self: *Manager4K, note: long.Basic4K) !void {
-        try self.longBasic.append(self.allocator, note);
-    }
-
-    pub fn deleteLongBasicNote(self: *Manager4K, idx: usize) void {
-        _ = self.longBasic.swapRemove(idx);
-    }
-
-    pub fn resetLongBasicNote(self: *Manager4K) void {
-        self.longBasic.clearRetainingCapacity();
-    }
-
-    pub fn appendLongConcurrentNote(self: *Manager4K, note: long.Concurrent4K) !void {
-        try self.longConcurrent.append(self.allocator, note);
-    }
-
-    pub fn deleteLongConcurrentNote(self: *Manager4K, idx: usize) void {
-        _ = self.longConcurrent.swapRemove(idx);
-    }
-
-    pub fn resetLongConcurrentNote(self: *Manager4K) void {
-        self.longConcurrent.clearRetainingCapacity();
-    }
-
-    pub fn drawShortBasicNote(
+    fn drawShortBasicNote(
         self: *Manager4K,
     ) !void {
         var idx: usize = 0;
         while (idx < self.shortBasic.items.len) {
-            var note = self.shortBasic.items[idx];
+            const note = self.shortBasic.items[idx];
             const del = note.draw(
                 @as(i64, @intFromFloat((rl.getTime() - @as(f64, @floatFromInt(self.currentTime))) * 1000.0)),
                 self.note1X,
@@ -160,12 +125,12 @@ pub const Manager4K = struct {
         }
     }
 
-    pub fn drawShortConcurrentNote(
+    fn drawShortConcurrentNote(
         self: *Manager4K,
     ) !void {
         var idx: usize = 0;
         while (idx < self.shortConcurrent.items.len) {
-            var note = self.shortConcurrent.items[idx];
+            const note = self.shortConcurrent.items[idx];
             const del = note.draw(
                 @as(i64, @intFromFloat((rl.getTime() - @as(f64, @floatFromInt(self.currentTime))) * 1000.0)),
                 self.note1X,
@@ -189,12 +154,12 @@ pub const Manager4K = struct {
         }
     }
 
-    pub fn drawLongBasicNote(
+    fn drawLongBasicNote(
         self: *Manager4K,
     ) !void {
         var idx: usize = 0;
         while (idx < self.longBasic.items.len) {
-            var note = self.longBasic.items[idx];
+            const note = self.longBasic.items[idx];
             const del = note.draw(
                 @as(i64, @intFromFloat((rl.getTime() - @as(f64, @floatFromInt(self.currentTime))) * 1000.0)),
                 self.note1X,
@@ -218,15 +183,16 @@ pub const Manager4K = struct {
 
             _ = self.longBasic.swapRemove(idx);
             try self.scoreManager.addAccuracy(.init(0, true));
+            try self.scoreManager.addAccuracy(.init(0, true));
         }
     }
 
-    pub fn drawLongConcurrentNote(
+    fn drawLongConcurrentNote(
         self: *Manager4K,
     ) !void {
         var idx: usize = 0;
         while (idx < self.longConcurrent.items.len) {
-            var note = self.longConcurrent.items[idx];
+            const note = self.longConcurrent.items[idx];
             const del = note.draw(
                 @as(i64, @intFromFloat((rl.getTime() - @as(f64, @floatFromInt(self.currentTime))) * 1000.0)),
                 self.note1X,
@@ -248,6 +214,220 @@ pub const Manager4K = struct {
 
             _ = self.longConcurrent.swapRemove(idx);
             try self.scoreManager.addAccuracy(.init(0, true));
+            try self.scoreManager.addAccuracy(.init(0, true));
         }
+    }
+
+    fn renderShortBasicNote(
+        self: *Manager4K,
+        key1: rl.KeyboardKey,
+        key2: rl.KeyboardKey,
+        key3: rl.KeyboardKey,
+        key4: rl.KeyboardKey,
+    ) !void {
+        var idx: usize = 0;
+        while (idx < self.shortBasic.items.len) {
+            const note = self.shortBasic.items[idx];
+            const errors = note.render(
+                @as(i64, @intFromFloat((rl.getTime() - @as(f64, @floatFromInt(self.currentTime))) * 1000.0)),
+                self.decisionTimeMs,
+                key1,
+                key2,
+                key3,
+                key4,
+            );
+
+            if (errors != self.decisionTimeMs + 1) {
+                _ = self.shortBasic.swapRemove(idx);
+                self.noteEffect4K.on(note.keyType);
+                try self.scoreManager.addAccuracy(.init(errors, false));
+                break;
+            }
+
+            idx += 1;
+        }
+    }
+
+    fn renderShortConcurrentNote(
+        self: *Manager4K,
+        key1: rl.KeyboardKey,
+        key2: rl.KeyboardKey,
+        key3: rl.KeyboardKey,
+        key4: rl.KeyboardKey,
+    ) !void {
+        var idx: usize = 0;
+        while (idx < self.shortConcurrent.items.len) {
+            const note = self.shortConcurrent.items[idx];
+            const errors = note.render(
+                @as(i64, @intFromFloat((rl.getTime() - @as(f64, @floatFromInt(self.currentTime))) * 1000.0)),
+                self.decisionTimeMs,
+                key1,
+                key2,
+                key3,
+                key4,
+            );
+
+            if (errors != self.decisionTimeMs + 1) {
+                _ = self.shortConcurrent.swapRemove(idx);
+                self.noteEffect4K.on(note.keyType1);
+                self.noteEffect4K.on(note.keyType2);
+                try self.scoreManager.addAccuracy(.init(errors, false));
+                break;
+            }
+
+            idx += 1;
+        }
+    }
+
+    fn renderLongBasicNote(
+        self: *Manager4K,
+        key1: rl.KeyboardKey,
+        key2: rl.KeyboardKey,
+        key3: rl.KeyboardKey,
+        key4: rl.KeyboardKey,
+    ) !void {
+        var idx: usize = 0;
+        while (idx < self.longBasic.items.len) {
+            const note = &self.longBasic.items[idx];
+            const errors = note.render(
+                @as(i64, @intFromFloat((rl.getTime() - @as(f64, @floatFromInt(self.currentTime))) * 1000.0)),
+                self.decisionTimeMs,
+                key1,
+                key2,
+                key3,
+                key4,
+            );
+
+            if (note.isPressed) {
+                self.noteEffect4K.on(note.keyType);
+            }
+
+            if (errors != self.decisionTimeMs + 1) {
+                if (!note.isReleased) {
+                    try self.scoreManager.addAccuracy(.init(errors, false));
+                } else {
+                    _ = self.longBasic.swapRemove(idx);
+                    try self.scoreManager.addAccuracy(.init(errors, false));
+                }
+                break;
+            }
+
+            idx += 1;
+        }
+    }
+
+    fn renderLongConcurrentNote(
+        self: *Manager4K,
+        key1: rl.KeyboardKey,
+        key2: rl.KeyboardKey,
+        key3: rl.KeyboardKey,
+        key4: rl.KeyboardKey,
+    ) !void {
+        var idx: usize = 0;
+        while (idx < self.longConcurrent.items.len) {
+            const note = &self.longConcurrent.items[idx];
+            const errors = note.render(
+                @as(i64, @intFromFloat((rl.getTime() - @as(f64, @floatFromInt(self.currentTime))) * 1000.0)),
+                self.decisionTimeMs,
+                key1,
+                key2,
+                key3,
+                key4,
+            );
+
+            if (note.isPressed) {
+                self.noteEffect4K.on(note.keyType1);
+                self.noteEffect4K.on(note.keyType2);
+            }
+
+            if (errors != self.decisionTimeMs + 1) {
+                if (!note.isReleased) {
+                    try self.scoreManager.addAccuracy(.init(errors, false));
+                } else {
+                    _ = self.longConcurrent.swapRemove(idx);
+                    try self.scoreManager.addAccuracy(.init(errors, false));
+                }
+                break;
+            }
+
+            idx += 1;
+        }
+    }
+
+    pub fn resetTime(self: *Manager4K) void {
+        self.currentTime = @as(i64, @intFromFloat(rl.getTime()));
+    }
+
+    pub fn appendShortBasicNote(self: *Manager4K, note: short.Basic4K) !void {
+        try self.shortBasic.append(self.allocator, note);
+    }
+
+    pub fn resetShortBasicNote(self: *Manager4K) void {
+        self.shortBasic.clearRetainingCapacity();
+    }
+
+    pub fn appendShortConcurrentNote(self: *Manager4K, note: short.Concurrent4K) !void {
+        try self.shortConcurrent.append(self.allocator, note);
+    }
+
+    pub fn resetShortConcurrentNote(self: *Manager4K) void {
+        self.shortConcurrent.clearRetainingCapacity();
+    }
+
+    pub fn appendLongBasicNote(self: *Manager4K, note: long.Basic4K) !void {
+        try self.longBasic.append(self.allocator, note);
+    }
+
+    pub fn resetLongBasicNote(self: *Manager4K) void {
+        self.longBasic.clearRetainingCapacity();
+    }
+
+    pub fn appendLongConcurrentNote(self: *Manager4K, note: long.Concurrent4K) !void {
+        try self.longConcurrent.append(self.allocator, note);
+    }
+
+    pub fn resetLongConcurrentNote(self: *Manager4K) void {
+        self.longConcurrent.clearRetainingCapacity();
+    }
+
+    pub fn draw(self: *Manager4K) !void {
+        self.noteEffect4K.draw();
+        try self.drawShortBasicNote();
+        try self.drawShortConcurrentNote();
+        try self.drawLongBasicNote();
+        try self.drawLongConcurrentNote();
+    }
+
+    pub fn render(
+        self: *Manager4K,
+        key1: rl.KeyboardKey,
+        key2: rl.KeyboardKey,
+        key3: rl.KeyboardKey,
+        key4: rl.KeyboardKey,
+    ) !void {
+        try self.renderShortBasicNote(
+            key1,
+            key2,
+            key3,
+            key4,
+        );
+        try self.renderShortConcurrentNote(
+            key1,
+            key2,
+            key3,
+            key4,
+        );
+        try self.renderLongBasicNote(
+            key1,
+            key2,
+            key3,
+            key4,
+        );
+        try self.renderLongConcurrentNote(
+            key1,
+            key2,
+            key3,
+            key4,
+        );
     }
 };

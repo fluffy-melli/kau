@@ -1,5 +1,4 @@
 const rl = @import("raylib");
-const note = @import("note");
 const types = @import("types");
 
 pub const keyPressEffect4K = struct {

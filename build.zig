@@ -47,6 +47,16 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const effect = b.addModule("effect", .{
+        .root_source_file = b.path("src/effect/_.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    effect.addImport("raylib", raylib);
+    effect.addImport("raygui", raygui);
+    effect.addImport("types", types);
+
     const note = b.addModule("note", .{
         .root_source_file = b.path("src/note/_.zig"),
         .target = target,
@@ -57,17 +67,7 @@ pub fn build(b: *std.Build) void {
     note.addImport("raygui", raygui);
     note.addImport("types", types);
     note.addImport("scores", scores);
-
-    const effect = b.addModule("effect", .{
-        .root_source_file = b.path("src/effect/_.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-
-    effect.addImport("raylib", raylib);
-    effect.addImport("raygui", raygui);
-    effect.addImport("types", types);
-    effect.addImport("note", note);
+    note.addImport("effect", effect);
 
     const overlay = b.addModule("overlay", .{
         .root_source_file = b.path("src/overlay/_.zig"),

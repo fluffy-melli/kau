@@ -1,6 +1,36 @@
 const rl = @import("raylib");
 const types = @import("types");
 
+fn keyPressed(
+    key: types.KeyType4K,
+    key1: rl.KeyboardKey,
+    key2: rl.KeyboardKey,
+    key3: rl.KeyboardKey,
+    key4: rl.KeyboardKey,
+) bool {
+    return switch (key) {
+        .key1 => rl.isKeyPressed(key1),
+        .key2 => rl.isKeyPressed(key2),
+        .key3 => rl.isKeyPressed(key3),
+        .key4 => rl.isKeyPressed(key4),
+    };
+}
+
+fn keyDown(
+    key: types.KeyType4K,
+    key1: rl.KeyboardKey,
+    key2: rl.KeyboardKey,
+    key3: rl.KeyboardKey,
+    key4: rl.KeyboardKey,
+) bool {
+    return switch (key) {
+        .key1 => rl.isKeyDown(key1),
+        .key2 => rl.isKeyDown(key2),
+        .key3 => rl.isKeyDown(key3),
+        .key4 => rl.isKeyDown(key4),
+    };
+}
+
 pub const Basic4K = struct {
     keyType: types.KeyType4K,
 
@@ -19,7 +49,7 @@ pub const Basic4K = struct {
         };
     }
 
-    pub inline fn draw(
+    pub fn draw(
         self: Basic4K,
         posMs: i64,
         note1X: i32,
@@ -84,6 +114,26 @@ pub const Basic4K = struct {
 
         return false;
     }
+
+    pub fn render(
+        self: Basic4K,
+        posMs: i64,
+        decisionTimeMs: i64,
+        key1: rl.KeyboardKey,
+        key2: rl.KeyboardKey,
+        key3: rl.KeyboardKey,
+        key4: rl.KeyboardKey,
+    ) i64 {
+        const errors = self.hitTimeMs - posMs;
+
+        if (errors <= decisionTimeMs and errors >= -decisionTimeMs) {
+            if (keyPressed(self.keyType, key1, key2, key3, key4)) {
+                return errors;
+            }
+        }
+
+        return decisionTimeMs + 1;
+    }
 };
 
 pub const Concurrent4K = struct {
@@ -107,7 +157,7 @@ pub const Concurrent4K = struct {
         };
     }
 
-    pub inline fn draw(
+    pub fn draw(
         self: Concurrent4K,
         posMs: i64,
         note1X: i32,
@@ -201,5 +251,35 @@ pub const Concurrent4K = struct {
         }
 
         return false;
+    }
+
+    pub fn render(
+        self: Concurrent4K,
+        posMs: i64,
+        decisionTimeMs: i64,
+        key1: rl.KeyboardKey,
+        key2: rl.KeyboardKey,
+        key3: rl.KeyboardKey,
+        key4: rl.KeyboardKey,
+    ) i64 {
+        const errors = self.hitTimeMs - posMs;
+
+        if (errors <= decisionTimeMs and errors >= -decisionTimeMs) {
+            const pressed1 = keyPressed(self.keyType1, key1, key2, key3, key4);
+            const pressed2 = keyPressed(self.keyType2, key1, key2, key3, key4);
+
+            const downed1 = keyDown(self.keyType1, key1, key2, key3, key4);
+            const downed2 = keyDown(self.keyType2, key1, key2, key3, key4);
+
+            const hit1 = pressed1 and downed2;
+            const hit2 = downed1 and pressed2;
+            const hit3 = pressed1 and pressed2;
+
+            if (hit1 or hit2 or hit3) {
+                return errors;
+            }
+        }
+
+        return decisionTimeMs + 1;
     }
 };

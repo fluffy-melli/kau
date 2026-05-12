@@ -1,6 +1,51 @@
 const rl = @import("raylib");
 const types = @import("types");
 
+fn keyReleased(
+    key: types.KeyType4K,
+    key1: rl.KeyboardKey,
+    key2: rl.KeyboardKey,
+    key3: rl.KeyboardKey,
+    key4: rl.KeyboardKey,
+) bool {
+    return switch (key) {
+        .key1 => rl.isKeyReleased(key1),
+        .key2 => rl.isKeyReleased(key2),
+        .key3 => rl.isKeyReleased(key3),
+        .key4 => rl.isKeyReleased(key4),
+    };
+}
+
+fn keyPressed(
+    key: types.KeyType4K,
+    key1: rl.KeyboardKey,
+    key2: rl.KeyboardKey,
+    key3: rl.KeyboardKey,
+    key4: rl.KeyboardKey,
+) bool {
+    return switch (key) {
+        .key1 => rl.isKeyPressed(key1),
+        .key2 => rl.isKeyPressed(key2),
+        .key3 => rl.isKeyPressed(key3),
+        .key4 => rl.isKeyPressed(key4),
+    };
+}
+
+fn keyDown(
+    key: types.KeyType4K,
+    key1: rl.KeyboardKey,
+    key2: rl.KeyboardKey,
+    key3: rl.KeyboardKey,
+    key4: rl.KeyboardKey,
+) bool {
+    return switch (key) {
+        .key1 => rl.isKeyDown(key1),
+        .key2 => rl.isKeyDown(key2),
+        .key3 => rl.isKeyDown(key3),
+        .key4 => rl.isKeyDown(key4),
+    };
+}
+
 pub const Basic4K = struct {
     keyType: types.KeyType4K,
 
@@ -27,52 +72,7 @@ pub const Basic4K = struct {
         };
     }
 
-    inline fn keyReleased(
-        key: types.KeyType4K,
-        key1: rl.KeyboardKey,
-        key2: rl.KeyboardKey,
-        key3: rl.KeyboardKey,
-        key4: rl.KeyboardKey,
-    ) bool {
-        return switch (key) {
-            .key1 => rl.isKeyReleased(key1),
-            .key2 => rl.isKeyReleased(key2),
-            .key3 => rl.isKeyReleased(key3),
-            .key4 => rl.isKeyReleased(key4),
-        };
-    }
-
-    inline fn keyPressed(
-        key: types.KeyType4K,
-        key1: rl.KeyboardKey,
-        key2: rl.KeyboardKey,
-        key3: rl.KeyboardKey,
-        key4: rl.KeyboardKey,
-    ) bool {
-        return switch (key) {
-            .key1 => rl.isKeyPressed(key1),
-            .key2 => rl.isKeyPressed(key2),
-            .key3 => rl.isKeyPressed(key3),
-            .key4 => rl.isKeyPressed(key4),
-        };
-    }
-
-    inline fn keyDown(
-        key: types.KeyType4K,
-        key1: rl.KeyboardKey,
-        key2: rl.KeyboardKey,
-        key3: rl.KeyboardKey,
-        key4: rl.KeyboardKey,
-    ) bool {
-        return switch (key) {
-            .key1 => rl.isKeyDown(key1),
-            .key2 => rl.isKeyDown(key2),
-            .key3 => rl.isKeyDown(key3),
-            .key4 => rl.isKeyDown(key4),
-        };
-    }
-
-    pub inline fn draw(
+    pub fn draw(
         self: Basic4K,
         posMs: i64,
         note1X: i32,
@@ -118,17 +118,19 @@ pub const Basic4K = struct {
             return true;
         }
 
-        const bodyHeight = actualHeadY - tailDrawY;
+        const bodyHeight = headDrawY - tailDrawY;
 
         switch (self.keyType) {
             .key1 => {
-                rl.drawRectangle(
-                    note1X,
-                    headDrawY,
-                    noteSizeX,
-                    noteSizeY,
-                    outerHeadColor,
-                );
+                if (!self.isPressed) {
+                    rl.drawRectangle(
+                        note1X,
+                        headDrawY,
+                        noteSizeX,
+                        noteSizeY,
+                        outerHeadColor,
+                    );
+                }
 
                 rl.drawRectangle(
                     note1X,
@@ -139,13 +141,15 @@ pub const Basic4K = struct {
                 );
             },
             .key2 => {
-                rl.drawRectangle(
-                    note2X,
-                    headDrawY,
-                    noteSizeX,
-                    noteSizeY,
-                    innerHeadColor,
-                );
+                if (!self.isPressed) {
+                    rl.drawRectangle(
+                        note2X,
+                        headDrawY,
+                        noteSizeX,
+                        noteSizeY,
+                        innerHeadColor,
+                    );
+                }
 
                 rl.drawRectangle(
                     note2X,
@@ -156,13 +160,15 @@ pub const Basic4K = struct {
                 );
             },
             .key3 => {
-                rl.drawRectangle(
-                    note3X,
-                    headDrawY,
-                    noteSizeX,
-                    noteSizeY,
-                    innerHeadColor,
-                );
+                if (!self.isPressed) {
+                    rl.drawRectangle(
+                        note3X,
+                        headDrawY,
+                        noteSizeX,
+                        noteSizeY,
+                        innerHeadColor,
+                    );
+                }
 
                 rl.drawRectangle(
                     note3X,
@@ -173,13 +179,15 @@ pub const Basic4K = struct {
                 );
             },
             .key4 => {
-                rl.drawRectangle(
-                    note4X,
-                    headDrawY,
-                    noteSizeX,
-                    noteSizeY,
-                    innerHeadColor,
-                );
+                if (!self.isPressed) {
+                    rl.drawRectangle(
+                        note4X,
+                        headDrawY,
+                        noteSizeX,
+                        noteSizeY,
+                        innerHeadColor,
+                    );
+                }
 
                 rl.drawRectangle(
                     note4X,
@@ -192,6 +200,35 @@ pub const Basic4K = struct {
         }
 
         return false;
+    }
+
+    pub fn render(
+        self: *Basic4K,
+        posMs: i64,
+        decisionTimeMs: i64,
+        key1: rl.KeyboardKey,
+        key2: rl.KeyboardKey,
+        key3: rl.KeyboardKey,
+        key4: rl.KeyboardKey,
+    ) i64 {
+        const hitErrors = self.hitTimeMs - posMs;
+        const releaseErrors = self.hitTimeMs + self.holdingDurationMs - posMs;
+
+        if (!self.isPressed) {
+            const hit = keyPressed(self.keyType, key1, key2, key3, key4);
+            if (hitErrors <= decisionTimeMs and hitErrors >= -decisionTimeMs and hit) {
+                self.isPressed = true;
+                return hitErrors;
+            }
+        } else {
+            const release = keyReleased(self.keyType, key1, key2, key3, key4);
+            if (releaseErrors <= decisionTimeMs and releaseErrors >= -decisionTimeMs and release) {
+                self.isReleased = true;
+                return releaseErrors;
+            }
+        }
+
+        return decisionTimeMs + 1;
     }
 };
 
@@ -221,51 +258,6 @@ pub const Concurrent4K = struct {
             .holdingDurationMs = holdingDurationMs,
             .isPressed = false,
             .isReleased = false,
-        };
-    }
-
-    inline fn keyReleased(
-        key: types.KeyType4K,
-        key1: rl.KeyboardKey,
-        key2: rl.KeyboardKey,
-        key3: rl.KeyboardKey,
-        key4: rl.KeyboardKey,
-    ) bool {
-        return switch (key) {
-            .key1 => rl.isKeyReleased(key1),
-            .key2 => rl.isKeyReleased(key2),
-            .key3 => rl.isKeyReleased(key3),
-            .key4 => rl.isKeyReleased(key4),
-        };
-    }
-
-    inline fn keyPressed(
-        key: types.KeyType4K,
-        key1: rl.KeyboardKey,
-        key2: rl.KeyboardKey,
-        key3: rl.KeyboardKey,
-        key4: rl.KeyboardKey,
-    ) bool {
-        return switch (key) {
-            .key1 => rl.isKeyPressed(key1),
-            .key2 => rl.isKeyPressed(key2),
-            .key3 => rl.isKeyPressed(key3),
-            .key4 => rl.isKeyPressed(key4),
-        };
-    }
-
-    inline fn keyDown(
-        key: types.KeyType4K,
-        key1: rl.KeyboardKey,
-        key2: rl.KeyboardKey,
-        key3: rl.KeyboardKey,
-        key4: rl.KeyboardKey,
-    ) bool {
-        return switch (key) {
-            .key1 => rl.isKeyDown(key1),
-            .key2 => rl.isKeyDown(key2),
-            .key3 => rl.isKeyDown(key3),
-            .key4 => rl.isKeyDown(key4),
         };
     }
 
@@ -313,17 +305,19 @@ pub const Concurrent4K = struct {
             return true;
         }
 
-        const bodyHeight = actualHeadY - tailDrawY;
+        const bodyHeight = headDrawY - tailDrawY;
 
         switch (self.keyType1) {
             .key1 => {
-                rl.drawRectangle(
-                    note1X,
-                    headDrawY,
-                    noteSizeX,
-                    noteSizeY,
-                    headColor,
-                );
+                if (!self.isPressed) {
+                    rl.drawRectangle(
+                        note1X,
+                        headDrawY,
+                        noteSizeX,
+                        noteSizeY,
+                        headColor,
+                    );
+                }
 
                 rl.drawRectangle(
                     note1X,
@@ -334,13 +328,15 @@ pub const Concurrent4K = struct {
                 );
             },
             .key2 => {
-                rl.drawRectangle(
-                    note2X,
-                    headDrawY,
-                    noteSizeX,
-                    noteSizeY,
-                    headColor,
-                );
+                if (!self.isPressed) {
+                    rl.drawRectangle(
+                        note2X,
+                        headDrawY,
+                        noteSizeX,
+                        noteSizeY,
+                        headColor,
+                    );
+                }
 
                 rl.drawRectangle(
                     note2X,
@@ -351,13 +347,15 @@ pub const Concurrent4K = struct {
                 );
             },
             .key3 => {
-                rl.drawRectangle(
-                    note3X,
-                    headDrawY,
-                    noteSizeX,
-                    noteSizeY,
-                    headColor,
-                );
+                if (!self.isPressed) {
+                    rl.drawRectangle(
+                        note3X,
+                        headDrawY,
+                        noteSizeX,
+                        noteSizeY,
+                        headColor,
+                    );
+                }
 
                 rl.drawRectangle(
                     note3X,
@@ -368,13 +366,15 @@ pub const Concurrent4K = struct {
                 );
             },
             .key4 => {
-                rl.drawRectangle(
-                    note4X,
-                    headDrawY,
-                    noteSizeX,
-                    noteSizeY,
-                    headColor,
-                );
+                if (!self.isPressed) {
+                    rl.drawRectangle(
+                        note4X,
+                        headDrawY,
+                        noteSizeX,
+                        noteSizeY,
+                        headColor,
+                    );
+                }
 
                 rl.drawRectangle(
                     note4X,
@@ -388,13 +388,15 @@ pub const Concurrent4K = struct {
 
         switch (self.keyType2) {
             .key1 => {
-                rl.drawRectangle(
-                    note1X,
-                    headDrawY,
-                    noteSizeX,
-                    noteSizeY,
-                    headColor,
-                );
+                if (!self.isPressed) {
+                    rl.drawRectangle(
+                        note1X,
+                        headDrawY,
+                        noteSizeX,
+                        noteSizeY,
+                        headColor,
+                    );
+                }
 
                 rl.drawRectangle(
                     note1X,
@@ -405,13 +407,15 @@ pub const Concurrent4K = struct {
                 );
             },
             .key2 => {
-                rl.drawRectangle(
-                    note2X,
-                    headDrawY,
-                    noteSizeX,
-                    noteSizeY,
-                    headColor,
-                );
+                if (!self.isPressed) {
+                    rl.drawRectangle(
+                        note2X,
+                        headDrawY,
+                        noteSizeX,
+                        noteSizeY,
+                        headColor,
+                    );
+                }
 
                 rl.drawRectangle(
                     note2X,
@@ -422,13 +426,15 @@ pub const Concurrent4K = struct {
                 );
             },
             .key3 => {
-                rl.drawRectangle(
-                    note3X,
-                    headDrawY,
-                    noteSizeX,
-                    noteSizeY,
-                    headColor,
-                );
+                if (!self.isPressed) {
+                    rl.drawRectangle(
+                        note3X,
+                        headDrawY,
+                        noteSizeX,
+                        noteSizeY,
+                        headColor,
+                    );
+                }
 
                 rl.drawRectangle(
                     note3X,
@@ -439,13 +445,15 @@ pub const Concurrent4K = struct {
                 );
             },
             .key4 => {
-                rl.drawRectangle(
-                    note4X,
-                    headDrawY,
-                    noteSizeX,
-                    noteSizeY,
-                    headColor,
-                );
+                if (!self.isPressed) {
+                    rl.drawRectangle(
+                        note4X,
+                        headDrawY,
+                        noteSizeX,
+                        noteSizeY,
+                        headColor,
+                    );
+                }
 
                 rl.drawRectangle(
                     note4X,
@@ -458,5 +466,56 @@ pub const Concurrent4K = struct {
         }
 
         return false;
+    }
+
+    pub fn render(
+        self: *Concurrent4K,
+        posMs: i64,
+        decisionTimeMs: i64,
+        key1: rl.KeyboardKey,
+        key2: rl.KeyboardKey,
+        key3: rl.KeyboardKey,
+        key4: rl.KeyboardKey,
+    ) i64 {
+        const hitErrors = self.hitTimeMs - posMs;
+        const releaseErrors = self.hitTimeMs + self.holdingDurationMs - posMs;
+
+        if (!self.isPressed) {
+            if (hitErrors <= decisionTimeMs and hitErrors >= -decisionTimeMs) {
+                const pressed1 = keyPressed(self.keyType1, key1, key2, key3, key4);
+                const pressed2 = keyPressed(self.keyType2, key1, key2, key3, key4);
+
+                const downed1 = keyDown(self.keyType1, key1, key2, key3, key4);
+                const downed2 = keyDown(self.keyType2, key1, key2, key3, key4);
+
+                const hit1 = pressed1 and downed2;
+                const hit2 = downed1 and pressed2;
+                const hit3 = pressed1 and pressed2;
+
+                if (hit1 or hit2 or hit3) {
+                    self.isPressed = true;
+                    return hitErrors;
+                }
+            }
+        } else {
+            if (releaseErrors <= decisionTimeMs and releaseErrors >= -decisionTimeMs) {
+                const released1 = keyReleased(self.keyType1, key1, key2, key3, key4);
+                const released2 = keyReleased(self.keyType2, key1, key2, key3, key4);
+
+                const downed1 = keyDown(self.keyType1, key1, key2, key3, key4);
+                const downed2 = keyDown(self.keyType2, key1, key2, key3, key4);
+
+                const rle1 = released1 and downed2;
+                const rle2 = downed1 and released2;
+                const rle3 = released1 and released2;
+
+                if (rle1 or rle2 or rle3) {
+                    self.isReleased = true;
+                    return releaseErrors;
+                }
+            }
+        }
+
+        return decisionTimeMs + 1;
     }
 };
